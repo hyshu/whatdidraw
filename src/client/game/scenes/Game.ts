@@ -1,127 +1,221 @@
 import { Scene } from 'phaser';
 import * as Phaser from 'phaser';
-import { IncrementResponse, DecrementResponse, InitResponse } from '../../../shared/types/api';
+import { InitResponse, GetDrawingResponse, SubmitGuessResponse } from '../../../shared/types/api';
 
 export class Game extends Scene {
   camera: Phaser.Cameras.Scene2D.Camera;
   background: Phaser.GameObjects.Image;
-  msg_text: Phaser.GameObjects.Text;
-  count: number = 0;
-  countText: Phaser.GameObjects.Text;
-  incButton: Phaser.GameObjects.Text;
-  decButton: Phaser.GameObjects.Text;
-  goButton: Phaser.GameObjects.Text;
+  titleText: Phaser.GameObjects.Text;
+  statusText: Phaser.GameObjects.Text;
+  guessInput: HTMLInputElement;
+  guessButton: Phaser.GameObjects.Text;
+  hintText: Phaser.GameObjects.Text;
+  drawingArea: Phaser.GameObjects.Rectangle;
+  currentDrawing: any;
 
   constructor() {
     super('Game');
   }
 
   create() {
-    // Configure camera & background
     this.camera = this.cameras.main;
-    this.camera.setBackgroundColor(0x222222);
-
-    // Optional: semi-transparent background image if one has been loaded elsewhere
+    this.camera.setBackgroundColor(0x2c3e50);
     this.background = this.add.image(512, 384, 'background').setAlpha(0.25);
-
-    /* -------------------------------------------
-     *  UI Elements
-     * ------------------------------------------- */
-
-    // Display the current count
-    this.countText = this.add
-      .text(512, 340, `Count: ${this.count}`, {
+    this.titleText = this.add
+      .text(512, 50, 'What Did I Draw?', {
         fontFamily: 'Arial Black',
-        fontSize: 56,
-        color: '#ffd700',
+        fontSize: 42,
+        color: '#ffffff',
         stroke: '#000000',
-        strokeThickness: 10,
+        strokeThickness: 6,
       })
       .setOrigin(0.5);
 
-    // Fetch the initial counter value from server and update UI
-    void (async () => {
-      try {
-        const response = await fetch('/api/init');
-        if (!response.ok) throw new Error(`API error: ${response.status}`);
+    this.drawingArea = this.add.rectangle(512, 300, 600, 400, 0x34495e, 1);
+    this.drawingArea.setStrokeStyle(3, 0xffffff);
 
-        const data = (await response.json()) as InitResponse;
-        this.count = data.count;
-        this.updateCountText();
-      } catch (error) {
-        console.error('Failed to fetch initial count:', error);
-      }
-    })();
+    const placeholderText = this.add
+      .text(512, 300, 'Drawing will appear here', {
+        fontFamily: 'Arial',
+        fontSize: 24,
+        color: '#7f8c8d',
+      })
+      .setOrigin(0.5);
 
-    // Button styling helper
-    const createButton = (y: number, label: string, color: string, onClick: () => void) => {
-      const button = this.add
-        .text(512, y, label, {
-          fontFamily: 'Arial Black',
-          fontSize: 36,
-          color: color,
-          backgroundColor: '#444444',
-          padding: {
-            x: 25,
-            y: 12,
-          } as Phaser.Types.GameObjects.Text.TextPadding,
-        })
-        .setOrigin(0.5)
-        .setInteractive({ useHandCursor: true })
-        .on('pointerover', () => button.setStyle({ backgroundColor: '#555555' }))
-        .on('pointerout', () => button.setStyle({ backgroundColor: '#444444' }))
-        .on('pointerdown', onClick);
-      return button;
-    };
+    this.hintText = this.add
+      .text(512, 520, 'Hint: Loading...', {
+        fontFamily: 'Arial',
+        fontSize: 20,
+        color: '#f39c12',
+      })
+      .setOrigin(0.5);
 
-    // Increment button
-    this.incButton = createButton(this.scale.height * 0.55, 'Increment', '#00ff00', async () => {
-      try {
-        const response = await fetch('/api/increment', { method: 'POST' });
-        if (!response.ok) throw new Error(`API error: ${response.status}`);
+    this.statusText = this.add
+      .text(512, 560, 'Loading drawing...', {
+        fontFamily: 'Arial',
+        fontSize: 18,
+        color: '#95a5a6',
+      })
+      .setOrigin(0.5);
 
-        const data = (await response.json()) as IncrementResponse;
-        this.count = data.count;
-        this.updateCountText();
-      } catch (error) {
-        console.error('Failed to increment count:', error);
-      }
-    });
+    this.createGuessInput();
 
-    // Decrement button
-    this.decButton = createButton(this.scale.height * 0.65, 'Decrement', '#ff5555', async () => {
-      try {
-        const response = await fetch('/api/decrement', { method: 'POST' });
-        if (!response.ok) throw new Error(`API error: ${response.status}`);
+    this.guessButton = this.add
+      .text(512, 650, 'Submit Guess', {
+        fontFamily: 'Arial Black',
+        fontSize: 28,
+        color: '#ffffff',
+        backgroundColor: '#27ae60',
+        padding: {
+          x: 20,
+          y: 10,
+        } as Phaser.Types.GameObjects.Text.TextPadding,
+      })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => this.guessButton.setStyle({ backgroundColor: '#2ecc71' }))
+      .on('pointerout', () => this.guessButton.setStyle({ backgroundColor: '#27ae60' }))
+      .on('pointerdown', () => this.submitGuess());
 
-        const data = (await response.json()) as DecrementResponse;
-        this.count = data.count;
-        this.updateCountText();
-      } catch (error) {
-        console.error('Failed to decrement count:', error);
-      }
-    });
+    const menuButton = this.add
+      .text(512, 720, 'Back to Menu', {
+        fontFamily: 'Arial',
+        fontSize: 20,
+        color: '#ecf0f1',
+        backgroundColor: '#7f8c8d',
+        padding: {
+          x: 15,
+          y: 8,
+        } as Phaser.Types.GameObjects.Text.TextPadding,
+      })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerover', () => menuButton.setStyle({ backgroundColor: '#95a5a6' }))
+      .on('pointerout', () => menuButton.setStyle({ backgroundColor: '#7f8c8d' }))
+      .on('pointerdown', () => this.scene.start('MainMenu'));
 
-    // Game Over button – navigates to the GameOver scene
-    this.goButton = createButton(this.scale.height * 0.75, 'Game Over', '#ffffff', () => {
-      this.scene.start('GameOver');
-    });
-
-    // Setup responsive layout
+    this.initializeGame();
     this.updateLayout(this.scale.width, this.scale.height);
     this.scale.on('resize', (gameSize: Phaser.Structs.Size) => {
       const { width, height } = gameSize;
       this.updateLayout(width, height);
     });
+  }
 
-    // No automatic navigation to GameOver – users can stay in this scene.
+  createGuessInput() {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Enter your guess...';
+    input.style.position = 'absolute';
+    input.style.left = '50%';
+    input.style.top = '600px';
+    input.style.transform = 'translateX(-50%)';
+    input.style.width = '300px';
+    input.style.padding = '10px';
+    input.style.fontSize = '18px';
+    input.style.borderRadius = '5px';
+    input.style.border = '2px solid #34495e';
+    input.id = 'guess-input';
+
+    const gameContainer = document.getElementById('game-container');
+    if (gameContainer) {
+      gameContainer.appendChild(input);
+    }
+
+    this.guessInput = input;
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        this.submitGuess();
+      }
+    });
+  }
+
+  async initializeGame() {
+    try {
+      const response = await fetch('/api/init');
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+      const data = (await response.json()) as InitResponse;
+      await this.loadDrawing();
+    } catch (error) {
+      console.error('Failed to initialize game:', error);
+      this.statusText.setText('Failed to load game. Please refresh.');
+    }
+  }
+
+  async loadDrawing() {
+    try {
+      const response = await fetch('/api/drawing');
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+      const data = (await response.json()) as GetDrawingResponse;
+      this.currentDrawing = data.drawing;
+
+      if (data.drawing) {
+        this.hintText.setText(`Hint: ${data.drawing.hint || 'No hint available'}`);
+        this.statusText.setText('Make your guess!');
+      }
+    } catch (error) {
+      console.error('Failed to load drawing:', error);
+      this.statusText.setText('Failed to load drawing.');
+    }
+  }
+
+  async submitGuess() {
+    if (!this.guessInput || !this.guessInput.value.trim()) {
+      this.statusText.setText('Please enter a guess!');
+      return;
+    }
+
+    const guess = this.guessInput.value.trim();
+
+    try {
+      const response = await fetch('/api/guess', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          guess: guess,
+          drawingId: this.currentDrawing?.id || 'unknown',
+        }),
+      });
+
+      if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+      const data = (await response.json()) as SubmitGuessResponse;
+
+      if (data.correct) {
+        this.statusText.setText(`Correct! The answer was "${data.answer}". Score: ${data.score}`);
+        this.statusText.setColor('#27ae60');
+
+        this.guessInput.disabled = true;
+        this.guessButton.setAlpha(0.5);
+        this.guessButton.removeInteractive();
+
+        this.time.delayedCall(2000, () => {
+          this.scene.start('GameOver', { score: data.score });
+        });
+      } else {
+        this.statusText.setText(`Incorrect! The answer was "${data.answer}". Try another drawing!`);
+        this.statusText.setColor('#e74c3c');
+
+        this.time.delayedCall(2000, () => {
+          this.guessInput.value = '';
+          this.statusText.setColor('#95a5a6');
+          this.loadDrawing();
+        });
+      }
+    } catch (error) {
+      console.error('Failed to submit guess:', error);
+      this.statusText.setText('Failed to submit guess. Please try again.');
+    }
   }
 
   updateLayout(width: number, height: number) {
-    // Resize camera viewport to avoid black bars
     this.cameras.resize(width, height);
 
-    // Center and scale background image to cover screen
     if (this.background) {
       this.background.setPosition(width / 2, height / 2);
       if (this.background.width && this.background.height) {
@@ -130,32 +224,37 @@ export class Game extends Scene {
       }
     }
 
-    // Calculate a scale factor relative to a 1024 × 768 reference resolution.
-    // We only shrink on smaller screens – never enlarge above 1×.
-    const scaleFactor = Math.min(Math.min(width / 1024, height / 768), 1);
+    const centerX = width / 2;
 
-    if (this.countText) {
-      this.countText.setPosition(width / 2, height * 0.45);
-      this.countText.setScale(scaleFactor);
+    if (this.titleText) {
+      this.titleText.setPosition(centerX, 50);
     }
 
-    if (this.incButton) {
-      this.incButton.setPosition(width / 2, height * 0.55);
-      this.incButton.setScale(scaleFactor);
+    if (this.drawingArea) {
+      this.drawingArea.setPosition(centerX, 300);
     }
 
-    if (this.decButton) {
-      this.decButton.setPosition(width / 2, height * 0.65);
-      this.decButton.setScale(scaleFactor);
+    if (this.hintText) {
+      this.hintText.setPosition(centerX, 520);
     }
 
-    if (this.goButton) {
-      this.goButton.setPosition(width / 2, height * 0.75);
-      this.goButton.setScale(scaleFactor);
+    if (this.statusText) {
+      this.statusText.setPosition(centerX, 560);
+    }
+
+    if (this.guessButton) {
+      this.guessButton.setPosition(centerX, 650);
+    }
+
+    if (this.guessInput) {
+      this.guessInput.style.top = '600px';
     }
   }
 
-  updateCountText() {
-    this.countText.setText(`Count: ${this.count}`);
+  destroy() {
+    if (this.guessInput) {
+      this.guessInput.remove();
+    }
+    super.destroy();
   }
 }

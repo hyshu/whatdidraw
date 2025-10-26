@@ -1,19 +1,22 @@
 import express from 'express';
-import { InitResponse, IncrementResponse, DecrementResponse } from '../shared/types/api';
+import {
+  InitResponse,
+  GetDrawingResponse,
+  SubmitGuessResponse,
+  GetLeaderboardResponse,
+  SaveDrawingResponse,
+  Drawing
+} from '../shared/types/api';
 import { redis, createServer, context } from '@devvit/web/server';
 import { createPost } from './core/post';
 
 const app = express();
 
-// Middleware for JSON body parsing
 app.use(express.json());
-// Middleware for URL-encoded body parsing
 app.use(express.urlencoded({ extended: true }));
-// Middleware for plain text body parsing
 app.use(express.text());
 
 const router = express.Router();
-
 router.get<{ postId: string }, InitResponse | { status: string; message: string }>(
   '/api/init',
   async (_req, res): Promise<void> => {
@@ -29,11 +32,10 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
     }
 
     try {
-      const count = await redis.get('count');
       res.json({
         type: 'init',
         postId: postId,
-        count: count ? parseInt(count) : 0,
+        gameState: 'menu',
       });
     } catch (error) {
       console.error(`API Init Error for post ${postId}:`, error);
@@ -46,43 +48,94 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
   }
 );
 
-router.post<{ postId: string }, IncrementResponse | { status: string; message: string }, unknown>(
-  '/api/increment',
+router.get<{ drawingId?: string }, GetDrawingResponse | { status: string; message: string }>(
+  '/api/drawing',
   async (_req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
+    try {
+      const mockDrawing: Drawing = {
+        id: 'mock-drawing-1',
+        answer: 'cat',
+        hint: 'A common pet',
+        category: 'Animals',
+        strokes: [],
+        createdBy: 'demo-user',
+        createdAt: Date.now(),
+      };
+
+      res.json({
+        type: 'getDrawing',
+        drawing: mockDrawing,
+      });
+    } catch (error) {
+      console.error('Error getting drawing:', error);
       res.status(400).json({
         status: 'error',
-        message: 'postId is required',
+        message: 'Failed to get drawing'
       });
-      return;
     }
-
-    res.json({
-      count: await redis.incrBy('count', 1),
-      postId,
-      type: 'increment',
-    });
   }
 );
 
-router.post<{ postId: string }, DecrementResponse | { status: string; message: string }, unknown>(
-  '/api/decrement',
-  async (_req, res): Promise<void> => {
-    const { postId } = context;
-    if (!postId) {
+router.post<{}, SubmitGuessResponse | { status: string; message: string }, { guess: string; drawingId: string }>(
+  '/api/guess',
+  async (req, res): Promise<void> => {
+    try {
+      const { guess } = req.body;
+      const correct = guess?.toLowerCase() === 'cat';
+
+      res.json({
+        type: 'submitGuess',
+        correct,
+        answer: 'cat',
+        score: correct ? 100 : 0,
+      });
+    } catch (error) {
+      console.error('Error submitting guess:', error);
       res.status(400).json({
         status: 'error',
-        message: 'postId is required',
+        message: 'Failed to submit guess'
       });
-      return;
     }
+  }
+);
 
-    res.json({
-      count: await redis.incrBy('count', -1),
-      postId,
-      type: 'decrement',
-    });
+router.get<{}, GetLeaderboardResponse | { status: string; message: string }>(
+  '/api/leaderboard',
+  async (_req, res): Promise<void> => {
+    try {
+      res.json({
+        type: 'getLeaderboard',
+        scores: [],
+      });
+    } catch (error) {
+      console.error('Error getting leaderboard:', error);
+      res.status(400).json({
+        status: 'error',
+        message: 'Failed to get leaderboard'
+      });
+    }
+  }
+);
+
+router.post<{}, SaveDrawingResponse | { status: string; message: string }, { drawing: Partial<Drawing> }>(
+  '/api/drawing',
+  async (req, res): Promise<void> => {
+    try {
+      const { drawing } = req.body;
+      const drawingId = `drawing-${Date.now()}`;
+
+      res.json({
+        type: 'saveDrawing',
+        drawingId,
+        success: true,
+      });
+    } catch (error) {
+      console.error('Error saving drawing:', error);
+      res.status(400).json({
+        status: 'error',
+        message: 'Failed to save drawing'
+      });
+    }
   }
 );
 
@@ -119,10 +172,8 @@ router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
   }
 });
 
-// Use router middleware
 app.use(router);
 
-// Get port from environment variable with fallback
 const port = process.env.WEBBIT_PORT || 3000;
 
 const server = createServer(app);

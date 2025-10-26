@@ -1,17 +1,42 @@
 export type InitResponse = {
   type: 'init';
   postId: string;
-  count: number;
+  gameState: 'menu' | 'drawing' | 'guessing' | 'results';
 };
 
-export type IncrementResponse = {
-  type: 'increment';
-  postId: string;
-  count: number;
+export type Drawing = {
+  id: string;
+  answer: string;
+  hint?: string;
+  category?: string;
+  strokes: any[];
+  createdBy: string;
+  createdAt: number;
 };
 
-export type DecrementResponse = {
-  type: 'decrement';
-  postId: string;
-  count: number;
+export type GetDrawingResponse = {
+  type: 'getDrawing';
+  drawing: Drawing | null;
+};
+
+export type SubmitGuessResponse = {
+  type: 'submitGuess';
+  correct: boolean;
+  answer: string;
+  score: number;
+};
+
+export type GetLeaderboardResponse = {
+  type: 'getLeaderboard';
+  scores: Array<{
+    username: string;
+    score: number;
+    timestamp: number;
+  }>;
+};
+
+export type SaveDrawingResponse = {
+  type: 'saveDrawing';
+  drawingId: string;
+  success: boolean;
 };

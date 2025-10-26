@@ -8,20 +8,20 @@ export const createPost = async () => {
 
   return await reddit.submitCustomPost({
     splash: {
-      // Splash screen customization
-      appDisplayName: 'whatdidraw',
+      appDisplayName: 'What Did I Draw?',
       backgroundUri: 'default-splash.png',
       buttonLabel: 'Start Playing',
-      description: 'An exciting interactive experience',
+      description: 'Can you guess what was drawn? Test your skills in this fun drawing quiz game!',
       entryUri: 'index.html',
-      heading: 'Welcome to the Game!',
+      heading: 'What Did I Draw?',
       appIconUri: 'default-icon.png',
     },
     postData: {
-      gameState: 'initial',
-      score: 0,
+      gameState: 'menu',
+      totalDrawings: 0,
+      totalPlayers: 0,
     },
     subredditName: subredditName,
-    title: 'whatdidraw',
+    title: 'What Did I Draw? - Drawing Quiz Game',
   });
 };
