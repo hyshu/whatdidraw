@@ -23,6 +23,24 @@ The phases progress from:
 
 ## Core Implementation Tasks
 
+### Phase 0: Initial Setup and Branding
+
+- [ ] 0. Configure game branding and initial setup
+- [ ] 0.1 Remove Phaser default branding
+  - Remove or hide Phaser logo from boot/preloader
+  - Customize boot screen background
+  - Remove default Phaser template assets if any
+  - _Requirements: Initial setup_
+
+- [ ] 0.2 Design and implement custom title screen
+  - Create custom title screen with game branding ("What Did I Draw?" or similar)
+  - Add custom background color/design matching game theme
+  - Design main menu buttons with consistent visual style
+  - Implement custom font/typography if needed
+  - Add basic animations or visual polish to title screen
+  - Ensure mobile-friendly layout and touch targets
+  - _Requirements: 10.1, UX consistency_
+
 ### Phase 1: Visual Foundation
 
 - [ ] 1. Create drawing canvas system (Visual feedback immediately)
