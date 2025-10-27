@@ -73,6 +73,20 @@ The phases progress from:
   - Display UTF-8 character support message
   - _Requirements: 1.6, 1.7, 7.2_
 
+- [ ] 1.5 Test Phase 1 implementation
+  - Verify drawing canvas initializes correctly (600x400px)
+  - Test mouse and touch drawing functionality
+  - Test all drawing tools (color palette, brush sizes, pen/eraser toggle)
+  - Test clear canvas with confirmation dialog
+  - Test stroke capture stores correct data (coordinates, color, width)
+  - Test undo functionality removes last stroke correctly
+  - Test stroke counter updates accurately
+  - Test answer input validation (1-50 chars, required field)
+  - Test hint input validation (0-100 chars, optional field)
+  - Test character counter displays correctly for both fields
+  - Verify UTF-8 character support message is displayed
+  - _Requirements: 1.1-1.8, 10.1_
+
 ### Phase 2: Playback System
 
 - [ ] 2. Create playback and quiz system
@@ -117,6 +131,29 @@ The phases progress from:
   - Handle "no scores yet" empty state
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
+- [ ] 2.5 Test Phase 2 implementation
+  - Verify quiz scene loads and displays canvas correctly
+  - Test playback replays hardcoded stroke data accurately
+  - Test play/pause button functionality
+  - Verify progress bar updates during playback
+  - Test stroke timing system preserves original drawing timing
+  - Verify requestAnimationFrame provides smooth rendering
+  - Test pause/resume state transitions
+  - Test stroke progress communication in real-time
+  - Test guess input field accepts user input
+  - Verify hint displays correctly when available
+  - Test answer checking with mock data (correct/incorrect feedback)
+  - Verify answer is displayed after incorrect guess or completion
+  - Test score display shows breakdown (base + time bonus)
+  - Verify elapsed time calculation is accurate
+  - Test viewed stroke count displays correctly
+  - Test leaderboard scene displays top 5 scores with mock data
+  - Verify score breakdown displays for each leaderboard entry
+  - Test user rank display when in top 5
+  - Verify "no scores yet" empty state displays correctly
+  - Test navigation from quiz results to leaderboard
+  - _Requirements: 2.1-2.5, 3.3, 4.1-4.4, 8.5_
+
 ### Phase 3: Navigation and State (Connect the pieces)
 
 - [ ] 3. Implement navigation between modes
@@ -153,6 +190,29 @@ The phases progress from:
   - Implement unified navigation structure (Create / Play / Leaderboard)
   - _Requirements: 10.2, 10.4, 10.6_
 
+- [ ] 3.4 Test Phase 3 implementation
+  - Test "Save Drawing" button saves to localStorage
+  - Verify confirmation message displays with drawing ID after save
+  - Test "Create Another" and "Play Quiz" options appear after save
+  - Verify "Play Quiz" from main menu navigates correctly
+  - Test mode switcher UI functionality
+  - Test auto-save triggers every 5 seconds
+  - Verify auto-save checks for stroke changes before saving
+  - Test drawing restoration on page refresh
+  - Test quiz progress state persistence
+  - Verify session:lastMode is saved correctly
+  - Test drawing draft is cleared after successful save
+  - Test quiz state is cleared on completion or quit
+  - Test auto-save timer cleanup when leaving drawing mode
+  - Verify localStorage quota exceeded error is handled gracefully
+  - Test auto-save visual feedback ("Draft saved" indicator)
+  - Test auto-save debouncing during rapid drawing
+  - Test "Save drawing before leaving?" prompt displays when appropriate
+  - Verify "Play Another" and "Create Drawing" options after quiz completion
+  - Test back button returns to correct mode using session:lastMode
+  - Verify unified navigation structure (Create / Play / Leaderboard)
+  - _Requirements: 10.1-10.6_
+
 ### Phase 4: Data Models and Backend (Now add the real logic)
 
 - [ ] 4. Implement data models
@@ -170,6 +230,21 @@ The phases progress from:
   - Check answer length (1-50 chars)
   - Simple text sanitization (remove HTML tags)
   - _Requirements: 7.2, 7.3, 7.4_
+
+- [ ] 4.3 Test Phase 4 implementation
+  - Verify Stroke and Point interfaces are properly defined
+  - Test Drawing interface includes all required metadata fields
+  - Test Score interface includes breakdown fields (base, time bonus, etc.)
+  - Verify hint is optional in Drawing interface
+  - Test mock data uses new TypeScript types correctly
+  - Test stroke count validation (1-1000 range)
+  - Verify coordinates are validated within canvas bounds (600x400)
+  - Test answer length validation (1-50 chars)
+  - Test hint length validation (0-100 chars)
+  - Verify text sanitization removes HTML tags
+  - Test validation error messages are user-friendly
+  - Verify TypeScript compiler catches type errors
+  - _Requirements: 1.6-1.8, 6.2, 7.2-7.4, 8.1_
 
 ### Phase 5: Server Integration (Replace mocks with real API)
 
@@ -205,6 +280,29 @@ The phases progress from:
   - Handle "no scores yet" case
   - _Requirements: 4.1, 4.2, 4.3_
 
+- [ ] 5.5 Test Phase 5 implementation
+  - Test POST /api/drawing saves drawing correctly
+  - Verify server-side validation rejects invalid stroke counts
+  - Test ID generation creates unique IDs
+  - Verify drawings are stored in memory/JSON file correctly
+  - Test GET /api/drawing returns saved drawings
+  - Verify random selection logic works correctly
+  - Test "no drawings" case returns appropriate response
+  - Test drawing retrieval with valid and invalid IDs
+  - Test POST /api/scores calculates base score correctly: (total - viewed) × 100
+  - Test time bonus calculation: max(0, (60 - elapsed) × 10)
+  - Verify score breakdown is returned correctly
+  - Test score storage in memory
+  - Verify rankings are updated after score submission
+  - Test user's rank is calculated correctly
+  - Test GET /api/leaderboard/:id returns top 5 scores
+  - Verify score breakdown is included for each entry
+  - Test username, total score, and submission time are included
+  - Verify "no scores yet" case is handled correctly
+  - Test all endpoints handle errors gracefully
+  - Verify API responses match expected format
+  - _Requirements: 3.1-3.3, 4.1-4.3, 8.1-8.8_
+
 ### Phase 6: Redis and Production Features (Make it production-ready)
 
 - [ ] 6. Add Redis storage
@@ -239,6 +337,29 @@ The phases progress from:
   - Handle concurrent submissions safely
   - Test race conditions
   - _Requirements: 3.4, 9.2, 9.3, 9.4_
+
+- [ ] 6.5 Test Phase 6 implementation
+  - Test Redis client connection for Devvit
+  - Verify connection error handling works correctly
+  - Test key naming schema follows conventions
+  - Verify basic Redis operations (GET, SET, DEL, INCR)
+  - Test drawing storage in Redis
+  - Test ID generation with INCR
+  - Verify score storage in Redis
+  - Test leaderboard creation with sorted sets (ZADD, ZRANGE)
+  - Test coordinate rounding (3 decimals → 1 decimal)
+  - Test property name shortening
+  - Verify compression ratio meets target (30-40% reduction)
+  - Test decompression on client correctly restores data
+  - Test WATCH/MULTI/EXEC transaction for atomic updates
+  - Verify existing score check (only update if higher)
+  - Test retry mechanism (3 attempts with exponential backoff)
+  - Test leaderboard update in same transaction
+  - Verify ZREMRANGEBYRANK trims to top 5 correctly
+  - Test concurrent score submissions don't create conflicts
+  - Verify race condition handling
+  - Test Redis failures trigger appropriate error handling
+  - _Requirements: 3.4, 4.1, 6.1-6.3, 9.2-9.4_
 
 ### Phase 7: Polish and Optimization
 
@@ -284,6 +405,35 @@ The phases progress from:
   - Use cache:leaderboard:{drawingId} and cache:drawing:{drawingId} key patterns
   - _Requirements: Design: Performance Optimization - Caching_
 
+- [ ] 7.5 Test Phase 7 implementation
+  - Test touch event handling on mobile devices
+  - Verify 50ms debouncing prevents duplicate touches
+  - Test responsive UI scales correctly below 768px
+  - Verify touch targets meet 44px minimum size
+  - Test mobile-specific layout adjustments
+  - Test client-side error handling for network timeouts (30s)
+  - Verify exponential backoff retry (1s, 2s, 4s, max 3 retries)
+  - Test server-side error responses include proper format
+  - Verify each error type displays user-friendly message:
+    - Canvas initialization failure message
+    - Network timeout message with retry
+    - Missing drawing (404) message
+    - Invalid input (400) with validation details
+    - Redis failure (500) message
+  - Test localStorage full error handling
+  - Verify refresh/retry buttons appear where appropriate
+  - Test rendering uses requestAnimationFrame
+  - Verify viewport meta tag is present for mobile
+  - Test frame rate maintains 60fps during drawing
+  - Test leaderboard cache with 5-min TTL
+  - Test frequently accessed drawing cache with 10-min TTL
+  - Verify cache invalidation on score submission
+  - Test cache miss fetches from primary storage
+  - Test lazy refresh repopulates cache after TTL expiry
+  - Verify frequently accessed drawing tracking (10+ accesses/hour)
+  - Test cache key patterns (cache:leaderboard:*, cache:drawing:*)
+  - _Requirements: 5.1-5.4, Error handling from design, Performance optimization_
+
 ### Phase 8: Security and Validation
 
 - [ ] 8. Add security features
@@ -309,6 +459,29 @@ The phases progress from:
   - Validate all user inputs
   - Add server-side validation
   - _Requirements: 7.2, 7.3, 7.4_
+
+- [ ] 8.3 Test Phase 8 implementation
+  - Test bad-words package installation and configuration
+  - Verify profanity filter with default dictionary
+  - Test profanity filter catches inappropriate words
+  - Verify UTF-8 support for international text
+  - Test Japanese characters in answers and hints
+  - Test Chinese characters in answers and hints
+  - Test Korean characters in answers and hints
+  - Test emoji support (🎨, 🖌️, 😀) in text fields
+  - Verify character counting accuracy (1 emoji = 1 char, not bytes)
+  - Test display rendering across browsers (Chrome, Firefox, Safari)
+  - Test display rendering on mobile devices
+  - Verify profanity filter doesn't incorrectly flag non-English text
+  - Test text input with IME support (mobile keyboards)
+  - Test full input validation utilities
+  - Verify text sanitization prevents XSS attacks
+  - Test script tag injection is blocked
+  - Test HTML entity encoding works correctly
+  - Verify all user inputs (answer, hint, strokes) are validated
+  - Test server-side validation matches client-side rules
+  - Test validation error messages are descriptive
+  - _Requirements: 7.1-7.5_
 
 ### Phase 9: Platform Integration
 
@@ -343,6 +516,27 @@ The phases progress from:
   - Verify username display in leaderboards matches Reddit user
   - Ensure Reddit session persists throughout app lifecycle
   - _Requirements: 10.7, Design: Reddit Authentication_
+
+- [ ] 9.3 Test Phase 9 implementation
+  - Test Devvit app manifest is properly configured
+  - Verify permissions and capabilities are set correctly
+  - Test local Devvit environment setup
+  - Verify Devvit Redis API works with key patterns
+  - Test custom post integration in Devvit
+  - Verify app lifecycle and state management in Devvit
+  - Test Devvit bundling and deployment process
+  - Verify rate limits are respected
+  - Test quota restrictions handling
+  - Test Reddit user context extraction from Devvit context object
+  - Verify username is passed to drawing save operations (createdBy)
+  - Test user ID is passed to score submission correctly
+  - Verify unauthenticated users are handled gracefully
+  - Test user context persists across Phaser scene transitions
+  - Verify username in leaderboards matches Reddit user
+  - Test Reddit session persists throughout app lifecycle
+  - Verify all endpoints receive Reddit user context
+  - Test authentication flow from start to finish
+  - _Requirements: 10.7, Platform integration, Design: Devvit constraints, Design: Reddit Authentication_
 
 ### Phase 10: Testing
 
