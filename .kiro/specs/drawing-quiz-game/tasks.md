@@ -25,14 +25,14 @@ The phases progress from:
 
 ### Phase 0: Initial Setup and Branding
 
-- [ ] 0. Configure game branding and initial setup
-- [ ] 0.1 Remove Phaser default branding
+- [x] 0. Configure game branding and initial setup
+- [x] 0.1 Remove Phaser default branding
   - Remove or hide Phaser logo from boot/preloader
   - Customize boot screen background
   - Remove default Phaser template assets if any
   - _Requirements: Initial setup_
 
-- [ ] 0.2 Design and implement custom title screen
+- [x] 0.2 Design and implement custom title screen
   - Create custom title screen with game branding ("What Did I Draw?" or similar)
   - Add custom background color/design matching game theme
   - Design main menu buttons with consistent visual style
