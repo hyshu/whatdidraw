@@ -272,6 +272,85 @@ The phases progress from:
   - Verify API responses match expected format
   - _Requirements: 3.1-3.3, 4.1-4.3, 8.1-8.8_
 
+- [ ] 4.6 Integrate client with server APIs
+  - [ ] 4.6.1 Update Drawing.ts to save via API
+    - Replace localStorage.setItem in saveDrawing() method (line 455-468)
+    - Implement fetch POST to /api/drawing endpoint
+    - Send drawing data including answer, hint, strokes, totalStrokes, createdBy, createdAt
+    - Handle API response and store drawingId returned from server
+    - Display success/error messages to user
+    - Add loading state during API call
+    - Implement error handling with user-friendly messages
+    - Keep localStorage as fallback for offline mode (optional)
+    - _Requirements: 8.1, 8.2_
+    - _Files: src/client/game/scenes/Drawing.ts_
+
+  - [ ] 4.6.2 Update Quiz.ts to load drawings via API
+    - Replace localStorage.getItem in create() method (line 62-69)
+    - Implement fetch GET to /api/drawing endpoint (or /api/drawing/random)
+    - Handle "no drawings available" case with user-friendly message
+    - Parse and validate drawing data structure
+    - Store drawing metadata (id, answer) for later score submission
+    - Add loading indicator while fetching drawing
+    - Implement retry logic on failure (3 attempts with exponential backoff)
+    - _Requirements: 8.3, 8.4_
+    - _Files: src/client/game/scenes/Quiz.ts_
+
+  - [ ] 4.6.3 Update Quiz.ts to submit guesses via API
+    - Add fetch POST to /api/scores in handleGuessSubmit() method
+    - Send guess text, drawingId, elapsed time, and viewed stroke count
+    - Receive score breakdown (baseScore, timeBonus, totalScore) from server
+    - Receive updated rankings and user's rank
+    - Display score results to user
+    - Navigate to leaderboard with score data
+    - Handle incorrect guess feedback
+    - Pause playback during guess submission
+    - _Requirements: 8.6, 8.7, 8.8_
+    - _Files: src/client/game/scenes/Quiz.ts_
+
+  - [ ] 4.6.4 Update Leaderboard.ts to load scores via API
+    - Replace mock data in loadLeaderboard() method (line 59-68)
+    - Implement fetch GET to /api/leaderboard/:drawingId endpoint
+    - Display real score data with breakdown (base + time bonus)
+    - Show username, total score, and submission time for each entry
+    - Handle empty leaderboard case with "No scores yet" message
+    - Highlight current user's rank if in top 5
+    - Add loading indicator while fetching leaderboard
+    - Implement refresh functionality to reload leaderboard
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 8.8_
+    - _Files: src/client/game/scenes/Leaderboard.ts_
+
+  - [ ] 4.6.5 Add error handling for API calls
+    - Implement centralized API client utility (optional)
+    - Add network timeout handling (30 seconds per request)
+    - Implement retry logic with exponential backoff (1s, 2s, 4s)
+    - Display user-friendly error messages for different error types
+    - Handle network failures gracefully
+    - Handle server errors (4xx, 5xx status codes)
+    - Handle JSON parse errors
+    - Add fallback to localStorage on API failure (optional)
+    - Log errors to console for debugging
+    - _Requirements: 9.7_
+    - _Files: src/client/game/scenes/Drawing.ts, Quiz.ts, Leaderboard.ts_
+
+  - [ ] 4.6.6 Test Phase 4.6 implementation
+    - Test drawing save via POST /api/drawing from Drawing.ts
+    - Verify drawingId is returned and stored correctly
+    - Test drawing load via GET /api/drawing from Quiz.ts
+    - Verify drawing data is parsed and displayed correctly
+    - Test guess submission via POST /api/scores from Quiz.ts
+    - Verify score calculation and display is correct
+    - Test leaderboard load via GET /api/leaderboard/:id from Leaderboard.ts
+    - Verify top 5 scores are displayed with correct data
+    - Test error handling for network failures
+    - Test error handling for invalid API responses
+    - Test retry logic with simulated failures
+    - Verify timeout handling (30 seconds)
+    - Test full flow: create drawing → save via API → load in quiz → submit guess → view leaderboard
+    - Verify data consistency: client → server → storage → server → client
+    - Test on different network conditions (slow, offline, intermittent)
+    - _Requirements: 8.1-8.8, 9.7_
+
 ### Phase 5: Redis and Production Features (Make it production-ready)
 
 - [ ] 5. Add Redis storage
