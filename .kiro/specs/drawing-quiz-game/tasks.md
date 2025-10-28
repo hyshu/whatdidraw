@@ -43,27 +43,27 @@ The phases progress from:
 
 ### Phase 1: Visual Foundation
 
-- [ ] 1. Create drawing canvas system (Visual feedback immediately)
-- [ ] 1.1 Implement basic Phaser drawing scene
+- [x] 1. Create drawing canvas system (Visual feedback immediately)
+- [x] 1.1 Implement basic Phaser drawing scene
   - Create new DrawingScene in Phaser
   - Set up 360x360px canvas
   - Wire up to main menu "Create Drawing" button
   - Basic mouse/touch drawing (simple lines first)
   - _Requirements: 1.1, 10.1_
 
-- [ ] 1.2 Add drawing tools UI
+- [x] 1.2 Add drawing tools UI
   - Add color palette (8 colors) with visual buttons
   - Add brush size selector (5 sizes) with preview
   - _Requirements: 1.3, 1.4, 1.5_
 
-- [ ] 1.3 Implement stroke capture and undo
+- [x] 1.3 Implement stroke capture and undo
   - Capture stroke data in memory (coordinates, color, width)
   - Implement undo functionality with visual feedback
   - Add stroke counter display
   - Store strokes temporarily in component state
   - _Requirements: 1.2, 1.8_
 
-- [ ] 1.4 Add answer and hint input UI
+- [x] 1.4 Add answer and hint input UI
   - Add "Finish" button to complete drawing (triggers answer/hint input modal/screen)
   - Create form for answer input (1-50 chars, required) shown after clicking "Finish"
   - Create form for hint input (0-100 chars, optional) shown after clicking "Finish"
@@ -73,7 +73,7 @@ The phases progress from:
   - Return to title screen after submitting answer and hint
   - _Requirements: 1.6, 1.7, 7.2, 10.2_
 
-- [ ] 1.4.1 Add back button and layout optimization
+- [x] 1.4.1 Add back button and layout optimization
   - Add "Back" button in top-left corner of drawing scene
   - Size back button smaller than primary UI elements to avoid interference
   - Ensure back button doesn't overlap with drawing tools or canvas
@@ -81,7 +81,7 @@ The phases progress from:
   - Add confirmation prompt if unsaved strokes exist when clicking back
   - _Requirements: 10.6, UI/UX consistency_
 
-- [ ] 1.4.2 Implement responsive layout for mobile and desktop
+- [x] 1.4.2 Implement responsive layout for mobile and desktop
   - Design layout to prevent horizontal scrolling on all screen sizes
   - Ensure drawing tools, canvas, and buttons don't overlap on mobile (below 768px)
   - Stack UI elements vertically on narrow screens if needed

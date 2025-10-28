@@ -200,7 +200,7 @@ export class MainMenu extends Scene {
         .on('pointerover', () => this.drawButton!.setStyle({ backgroundColor: '#5dade2' }))
         .on('pointerout', () => this.drawButton!.setStyle({ backgroundColor: '#3498db' }))
         .on('pointerdown', () => {
-          console.log('Drawing mode not yet implemented');
+          this.scene.start('Drawing');
         });
 
       this.tweens.add({
