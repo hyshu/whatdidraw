@@ -58,7 +58,9 @@ export function validateStroke(stroke: Stroke): ValidationResult {
   }
 
   for (let i = 0; i < stroke.points.length; i++) {
-    const coordValidation = validateCoordinates(stroke.points[i]);
+    const point = stroke.points[i];
+    if (!point) continue;
+    const coordValidation = validateCoordinates(point);
     if (!coordValidation.isValid) {
       errors.push(`Point ${i}: ${coordValidation.errors.join(', ')}`);
     }
@@ -134,7 +136,9 @@ export function validateDrawing(drawing: Partial<Drawing>): ValidationResult {
   }
 
   for (let i = 0; i < drawing.strokes.length; i++) {
-    const strokeValidation = validateStroke(drawing.strokes[i]);
+    const stroke = drawing.strokes[i];
+    if (!stroke) continue;
+    const strokeValidation = validateStroke(stroke);
     if (!strokeValidation.isValid) {
       errors.push(`Stroke ${i}: ${strokeValidation.errors.join(', ')}`);
     }

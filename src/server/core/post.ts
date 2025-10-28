@@ -12,7 +12,6 @@ export const createPost = async () => {
       backgroundUri: 'default-splash.png',
       buttonLabel: 'Start Playing',
       description: 'Can you guess what was drawn? Test your skills in this fun drawing quiz game!',
-      entryUri: 'index.html',
       heading: 'What Did I Draw?',
       appIconUri: 'default-icon.png',
     },

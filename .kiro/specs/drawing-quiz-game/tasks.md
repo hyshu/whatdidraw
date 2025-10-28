@@ -353,29 +353,29 @@ The phases progress from:
 
 ### Phase 5: Redis and Production Features (Make it production-ready)
 
-- [ ] 5. Add Redis storage
-- [ ] 5.1 Set up Redis connection
+- [x] 5. Add Redis storage
+- [x] 5.1 Set up Redis connection
   - Configure Redis client for Devvit
   - Implement connection error handling
   - Create key naming schema
   - Test basic operations
   - _Requirements: 6.3_
 
-- [ ] 5.2 Migrate to Redis storage
+- [x] 5.2 Migrate to Redis storage
   - Move drawing storage to Redis
   - Implement ID generation with INCR
   - Add score storage in Redis
   - Create leaderboard with sorted sets
   - _Requirements: 6.3, 3.4, 3.5, 8.1_
 
-- [ ] 5.3 Add data compression
+- [x] 5.3 Add data compression
   - Implement coordinate rounding (3→1 decimal)
   - Shorten property names
   - Verify compression ratio
   - Update decompression for client
   - _Requirements: 6.1, 6.2_
 
-- [ ] 5.4 Implement atomic updates
+- [x] 5.4 Implement atomic updates
   - Add WATCH/MULTI/EXEC for scores and leaderboard updates
   - Check existing score before update (only update if new score is higher)
   - Keep only highest score per user per drawing
@@ -386,7 +386,7 @@ The phases progress from:
   - Test race conditions
   - _Requirements: 3.4, 9.2, 9.3, 9.4_
 
-- [ ] 5.5 Test Phase 5 implementation
+- [x] 5.5 Test Phase 5 implementation
   - Test Redis client connection for Devvit
   - Verify connection error handling works correctly
   - Test key naming schema follows conventions

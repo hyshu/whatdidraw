@@ -9,8 +9,10 @@ import {
 } from '../shared/types/api';
 import { redis, createServer, context } from '@devvit/web/server';
 import { createPost } from './core/post';
-import { storage } from './storage/memory';
+import { RedisStorage } from './storage/redis';
 import { validateDrawing, sanitizeText } from '../shared/utils/validation';
+
+const storage = new RedisStorage(redis);
 
 const app = express();
 
@@ -59,9 +61,9 @@ router.get<{ drawingId?: string }, GetDrawingResponse | { status: string; messag
       let drawing: Drawing | undefined;
 
       if (drawingId && typeof drawingId === 'string') {
-        drawing = storage.getDrawing(drawingId);
+        drawing = await storage.getDrawing(drawingId);
       } else {
-        drawing = storage.getRandomDrawing();
+        drawing = await storage.getRandomDrawing();
       }
 
       if (!drawing) {
@@ -100,7 +102,7 @@ router.post<{}, SubmitGuessResponse | { status: string; message: string }, { gue
         return;
       }
 
-      const drawing = storage.getDrawing(drawingId);
+      const drawing = await storage.getDrawing(drawingId);
       if (!drawing) {
         res.status(404).json({
           status: 'error',
@@ -123,7 +125,7 @@ router.post<{}, SubmitGuessResponse | { status: string; message: string }, { gue
         totalScore = baseScore + timeBonus;
 
         const userId = context.userId || 'anonymous';
-        storage.saveScore({
+        await storage.saveScore({
           drawingId,
           userId,
           score: totalScore,
@@ -167,7 +169,7 @@ router.get<{ id: string }, GetLeaderboardResponse | { status: string; message: s
         return;
       }
 
-      const drawing = storage.getDrawing(id);
+      const drawing = await storage.getDrawing(id);
       if (!drawing) {
         res.status(404).json({
           status: 'error',
@@ -176,7 +178,7 @@ router.get<{ id: string }, GetLeaderboardResponse | { status: string; message: s
         return;
       }
 
-      const topScores = storage.getTopScores(id, 5);
+      const topScores = await storage.getTopScores(id, 5);
 
       const scoresWithUsernames = topScores.map(score => ({
         username: score.userId,
@@ -226,16 +228,16 @@ router.post<{}, SaveDrawingResponse | { status: string; message: string }, { dra
       const sanitizedAnswer = sanitizeText(drawing.answer || '');
       const sanitizedHint = drawing.hint ? sanitizeText(drawing.hint) : undefined;
 
-      const drawingToSave = {
+      const drawingToSave: Omit<Drawing, 'id'> = {
         createdBy: drawing.createdBy || context.userId || 'anonymous',
         createdAt: Date.now(),
         answer: sanitizedAnswer,
-        hint: sanitizedHint,
         strokes: drawing.strokes || [],
         totalStrokes: drawing.strokes?.length || 0,
+        ...(sanitizedHint ? { hint: sanitizedHint } : {}),
       };
 
-      const drawingId = storage.saveDrawing(drawingToSave);
+      const drawingId = await storage.saveDrawing(drawingToSave);
 
       res.json({
         type: 'saveDrawing',
