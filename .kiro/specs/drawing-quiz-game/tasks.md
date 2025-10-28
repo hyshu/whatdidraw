@@ -162,7 +162,7 @@ The phases progress from:
   - Handle "no scores yet" empty state
   - _Requirements: 4.1, 4.2, 4.3, 4.4_
 
-- [ ] 2.5 Test Phase 2 implementation
+- [x] 2.5 Test Phase 2 implementation
   - Verify quiz scene loads and displays canvas correctly
   - Test playback replays hardcoded stroke data accurately
   - Test play/pause button functionality

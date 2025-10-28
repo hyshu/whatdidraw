@@ -19,15 +19,35 @@ const mockPhaser = {
       },
       resize: vi.fn(),
     };
+    destroy() {
+      // Mock destroy method
+    }
     add: any = {
-      text: vi.fn(() => ({
-        setOrigin: vi.fn().mockReturnThis(),
-        setInteractive: vi.fn().mockReturnThis(),
-        on: vi.fn().mockReturnThis(),
-        setStyle: vi.fn().mockReturnThis(),
-        setText: vi.fn().mockReturnThis(),
-        setPosition: vi.fn().mockReturnThis(),
-      })),
+      text: vi.fn((x, y, text, style) => {
+        const textObj: any = {
+          x,
+          y,
+          text,
+          style: style || {},
+        };
+        textObj.setOrigin = vi.fn(function() { return textObj; });
+        textObj.setInteractive = vi.fn(function() { return textObj; });
+        textObj.on = vi.fn(function() { return textObj; });
+        textObj.setStyle = vi.fn(function(newStyle) {
+          Object.assign(textObj.style, newStyle);
+          return textObj;
+        });
+        textObj.setText = vi.fn(function(newText) {
+          textObj.text = newText;
+          return textObj;
+        });
+        textObj.setPosition = vi.fn(function(newX, newY) {
+          textObj.x = newX;
+          textObj.y = newY;
+          return textObj;
+        });
+        return textObj;
+      }),
       graphics: vi.fn(() => ({
         clear: vi.fn(),
         fillStyle: vi.fn(),
