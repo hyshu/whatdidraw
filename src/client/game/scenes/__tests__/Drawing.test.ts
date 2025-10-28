@@ -361,7 +361,7 @@ describe('Phase 1: Drawing Canvas System', () => {
       expect(global.alert).toHaveBeenCalledWith('Hint must be 100 characters or less.');
     });
 
-    it('should accept empty hint as optional', () => {
+    it('should accept empty hint as optional', async () => {
       scene['showInputModal']();
       const inputs = scene['inputModal']!.querySelectorAll('input[type="text"]');
       const answerInput = inputs[0] as HTMLInputElement;
@@ -371,6 +371,8 @@ describe('Phase 1: Drawing Canvas System', () => {
       const buttons = scene['inputModal']!.querySelectorAll('button');
       const submitButton = Array.from(buttons).find(b => b.textContent === 'Submit');
       submitButton?.click();
+
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       expect(scene.scene.start).toHaveBeenCalledWith('MainMenu');
     });
@@ -459,7 +461,7 @@ describe('Phase 1: Drawing Canvas System', () => {
       document.body.innerHTML = '';
     });
 
-    it('should navigate to MainMenu after submitting answer and hint', () => {
+    it('should navigate to MainMenu after submitting answer and hint', async () => {
       scene['showInputModal']();
       const inputs = scene['inputModal']!.querySelectorAll('input[type="text"]');
       const answerInput = inputs[0] as HTMLInputElement;
@@ -468,11 +470,13 @@ describe('Phase 1: Drawing Canvas System', () => {
       const buttons = scene['inputModal']!.querySelectorAll('button');
       const submitButton = Array.from(buttons).find(b => b.textContent === 'Submit');
       submitButton?.click();
+
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       expect(scene.scene.start).toHaveBeenCalledWith('MainMenu');
     });
 
-    it('should cleanup modal after submission', () => {
+    it('should cleanup modal after submission', async () => {
       scene['showInputModal']();
       const inputs = scene['inputModal']!.querySelectorAll('input[type="text"]');
       const answerInput = inputs[0] as HTMLInputElement;
@@ -481,11 +485,13 @@ describe('Phase 1: Drawing Canvas System', () => {
       const buttons = scene['inputModal']!.querySelectorAll('button');
       const submitButton = Array.from(buttons).find(b => b.textContent === 'Submit');
       submitButton?.click();
+
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       expect(scene['inputModal']).toBeNull();
     });
 
-    it('should clear strokes after submission', () => {
+    it('should clear strokes after submission', async () => {
       scene['showInputModal']();
       const inputs = scene['inputModal']!.querySelectorAll('input[type="text"]');
       const answerInput = inputs[0] as HTMLInputElement;
@@ -494,6 +500,8 @@ describe('Phase 1: Drawing Canvas System', () => {
       const buttons = scene['inputModal']!.querySelectorAll('button');
       const submitButton = Array.from(buttons).find(b => b.textContent === 'Submit');
       submitButton?.click();
+
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       expect(scene['strokes']).toHaveLength(0);
     });

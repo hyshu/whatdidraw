@@ -1,11 +1,12 @@
 import { Scene } from 'phaser';
-import { Point, Stroke, Drawing as DrawingData } from '../../../shared/types/api';
+import { Point, Stroke, Drawing as DrawingData, SaveDrawingResponse } from '../../../shared/types/api';
 import {
   validateStrokeCount,
   validateAnswer,
   validateHint,
   sanitizeText,
 } from '../../../shared/utils/validation';
+import { post, ApiError } from '../../utils/api';
 
 export class Drawing extends Scene {
   private canvas!: Phaser.GameObjects.Graphics;
@@ -447,7 +448,7 @@ export class Drawing extends Scene {
     }
   }
 
-  private saveDrawing(answer: string, hint: string) {
+  private async saveDrawing(answer: string, hint: string) {
     const sanitizedAnswer = sanitizeText(answer);
     const sanitizedHint = sanitizeText(hint);
 
@@ -471,18 +472,31 @@ export class Drawing extends Scene {
       }
     }
 
-    const quizData = {
+    const drawingData = {
       answer: sanitizedAnswer,
       hint: sanitizedHint || undefined,
       strokes: this.strokes,
       totalStrokes: this.strokes.length,
+      createdBy: 'player',
+      createdAt: Date.now(),
     };
 
-    localStorage.setItem('currentQuiz', JSON.stringify(quizData));
+    try {
+      const result = await post<SaveDrawingResponse>('/api/drawing', {
+        drawing: drawingData,
+      });
 
-    this.hideInputModal();
-    this.cleanup();
-    this.scene.start('MainMenu');
+      this.hideInputModal();
+      this.cleanup();
+      this.scene.start('MainMenu');
+    } catch (error) {
+      console.error('Error saving drawing:', error);
+      if (error instanceof ApiError) {
+        alert(error.message);
+      } else {
+        alert('Failed to save drawing. Please try again.');
+      }
+    }
   }
 
   private handleResize() {

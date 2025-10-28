@@ -1,7 +1,9 @@
 import { Scene } from 'phaser';
-import { Point, Stroke } from '../../../shared/types/api';
+import { Point, Stroke, GetDrawingResponse, SubmitGuessResponse } from '../../../shared/types/api';
+import { get, post, ApiError } from '../../utils/api';
 
 interface DrawingData {
+  id: string;
   answer: string;
   hint?: string;
   strokes: Stroke[];
@@ -45,24 +47,35 @@ export class Quiz extends Scene {
     super('Quiz');
   }
 
-  create() {
+  async create() {
     this.cameras.main.setBackgroundColor(0x6a4c93);
 
-    const savedDrawing = localStorage.getItem('currentQuiz');
-    if (!savedDrawing) {
-      alert('No quiz available. Please create a drawing first.');
+    try {
+      const result = await get<GetDrawingResponse>('/api/drawing');
+
+      if (!result.drawing) {
+        alert('No drawings available. Please create a drawing first.');
+        this.scene.start('MainMenu');
+        return;
+      }
+
+      this.drawingData = result.drawing;
+      this.guessStartTime = Date.now();
+
+      this.createUI();
+      this.createCanvas();
+      this.createHTMLInput();
+
+      this.scale.on('resize', () => this.handleResize());
+    } catch (error) {
+      console.error('Error loading drawing:', error);
+      if (error instanceof ApiError) {
+        alert(error.message);
+      } else {
+        alert('Failed to load drawing. Please try again.');
+      }
       this.scene.start('MainMenu');
-      return;
     }
-
-    this.drawingData = JSON.parse(savedDrawing);
-    this.guessStartTime = Date.now();
-
-    this.createUI();
-    this.createCanvas();
-    this.createHTMLInput();
-
-    this.scale.on('resize', () => this.handleResize());
   }
 
   private createUI() {
@@ -317,17 +330,12 @@ export class Quiz extends Scene {
     this.timeText.setText(`Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
   }
 
-  private handleGuessSubmit() {
+  private async handleGuessSubmit() {
     if (!this.drawingData || !this.guessInput) return;
 
-    const guess = this.guessInput.value.trim().toLowerCase();
-    const answer = this.drawingData.answer.toLowerCase();
-    const correct = guess === answer;
-
+    const guess = this.guessInput.value.trim();
     const elapsedSeconds = (Date.now() - this.guessStartTime) / 1000;
-    const totalStrokes = this.drawingData.totalStrokes;
 
-    // Calculate viewed strokes with partial stroke progress
     let viewedStrokes = this.completedStrokes.length;
     if (this.currentStroke && this.currentStrokeIndex < this.drawingData.strokes.length) {
       const currentStrokeData = this.drawingData.strokes[this.currentStrokeIndex];
@@ -337,15 +345,34 @@ export class Quiz extends Scene {
       viewedStrokes += progress;
     }
 
-    const baseScore = Math.max(0, (totalStrokes - viewedStrokes) * 100);
-    const timeBonus = Math.max(0, (60 - elapsedSeconds) * 10);
-    const totalScore = correct ? baseScore + timeBonus : 0;
-
     if (this.isPlaying) {
       this.togglePlayPause();
     }
 
-    this.showScoreDisplay(correct, totalScore, baseScore, timeBonus, viewedStrokes, elapsedSeconds);
+    try {
+      const result = await post<SubmitGuessResponse>('/api/guess', {
+        guess,
+        drawingId: this.drawingData.id,
+        elapsedTime: elapsedSeconds,
+        viewedStrokes,
+      });
+
+      this.showScoreDisplay(
+        result.correct,
+        result.score,
+        result.baseScore,
+        result.timeBonus,
+        viewedStrokes,
+        elapsedSeconds
+      );
+    } catch (error) {
+      console.error('Error submitting guess:', error);
+      if (error instanceof ApiError) {
+        alert(error.message);
+      } else {
+        alert('Failed to submit guess. Please try again.');
+      }
+    }
   }
 
   private showScoreDisplay(correct: boolean, totalScore: number, baseScore: number, timeBonus: number, viewedStrokes: number, elapsedSeconds: number) {
@@ -395,9 +422,22 @@ export class Quiz extends Scene {
       this.scoreDisplay.appendChild(scoreBreakdown);
     }
 
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = 'display: flex; gap: 10px; margin-top: 10px;';
+
+    const leaderboardButton = document.createElement('button');
+    leaderboardButton.textContent = 'View Leaderboard';
+    leaderboardButton.style.cssText = 'flex: 1; padding: 12px; background: #9b59b6; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold;';
+    leaderboardButton.onmouseover = () => leaderboardButton.style.background = '#af7ac5';
+    leaderboardButton.onmouseout = () => leaderboardButton.style.background = '#9b59b6';
+    leaderboardButton.onclick = () => {
+      this.cleanup();
+      this.scene.start('Leaderboard', { drawingId: this.drawingData?.id });
+    };
+
     const menuButton = document.createElement('button');
     menuButton.textContent = 'Main Menu';
-    menuButton.style.cssText = 'width: 100%; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold;';
+    menuButton.style.cssText = 'flex: 1; padding: 12px; background: #3498db; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold;';
     menuButton.onmouseover = () => menuButton.style.background = '#5dade2';
     menuButton.onmouseout = () => menuButton.style.background = '#3498db';
     menuButton.onclick = () => {
@@ -405,9 +445,12 @@ export class Quiz extends Scene {
       this.scene.start('MainMenu');
     };
 
+    buttonContainer.appendChild(leaderboardButton);
+    buttonContainer.appendChild(menuButton);
+
     this.scoreDisplay.appendChild(title);
     this.scoreDisplay.appendChild(answerDiv);
-    this.scoreDisplay.appendChild(menuButton);
+    this.scoreDisplay.appendChild(buttonContainer);
 
     document.body.appendChild(this.scoreDisplay);
 

@@ -4,12 +4,13 @@ import { Leaderboard } from '../Leaderboard';
 describe('Phase 2: Leaderboard Scene', () => {
   let scene: Leaderboard;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     document.body.innerHTML = '';
     vi.clearAllMocks();
 
     scene = new Leaderboard();
-    scene.create();
+    scene.init({ drawingId: 'test-drawing-id' });
+    await scene.create();
   });
 
   afterEach(() => {

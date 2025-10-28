@@ -272,8 +272,8 @@ The phases progress from:
   - Verify API responses match expected format
   - _Requirements: 3.1-3.3, 4.1-4.3, 8.1-8.8_
 
-- [ ] 4.6 Integrate client with server APIs
-  - [ ] 4.6.1 Update Drawing.ts to save via API
+- [x] 4.6 Integrate client with server APIs
+  - [x] 4.6.1 Update Drawing.ts to save via API
     - Replace localStorage.setItem in saveDrawing() method (line 455-468)
     - Implement fetch POST to /api/drawing endpoint
     - Send drawing data including answer, hint, strokes, totalStrokes, createdBy, createdAt
@@ -285,7 +285,7 @@ The phases progress from:
     - _Requirements: 8.1, 8.2_
     - _Files: src/client/game/scenes/Drawing.ts_
 
-  - [ ] 4.6.2 Update Quiz.ts to load drawings via API
+  - [x] 4.6.2 Update Quiz.ts to load drawings via API
     - Replace localStorage.getItem in create() method (line 62-69)
     - Implement fetch GET to /api/drawing endpoint (or /api/drawing/random)
     - Handle "no drawings available" case with user-friendly message
@@ -296,7 +296,7 @@ The phases progress from:
     - _Requirements: 8.3, 8.4_
     - _Files: src/client/game/scenes/Quiz.ts_
 
-  - [ ] 4.6.3 Update Quiz.ts to submit guesses via API
+  - [x] 4.6.3 Update Quiz.ts to submit guesses via API
     - Add fetch POST to /api/scores in handleGuessSubmit() method
     - Send guess text, drawingId, elapsed time, and viewed stroke count
     - Receive score breakdown (baseScore, timeBonus, totalScore) from server
@@ -308,7 +308,7 @@ The phases progress from:
     - _Requirements: 8.6, 8.7, 8.8_
     - _Files: src/client/game/scenes/Quiz.ts_
 
-  - [ ] 4.6.4 Update Leaderboard.ts to load scores via API
+  - [x] 4.6.4 Update Leaderboard.ts to load scores via API
     - Replace mock data in loadLeaderboard() method (line 59-68)
     - Implement fetch GET to /api/leaderboard/:drawingId endpoint
     - Display real score data with breakdown (base + time bonus)
@@ -320,7 +320,7 @@ The phases progress from:
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 8.8_
     - _Files: src/client/game/scenes/Leaderboard.ts_
 
-  - [ ] 4.6.5 Add error handling for API calls
+  - [x] 4.6.5 Add error handling for API calls
     - Implement centralized API client utility (optional)
     - Add network timeout handling (30 seconds per request)
     - Implement retry logic with exponential backoff (1s, 2s, 4s)
@@ -333,7 +333,7 @@ The phases progress from:
     - _Requirements: 9.7_
     - _Files: src/client/game/scenes/Drawing.ts, Quiz.ts, Leaderboard.ts_
 
-  - [ ] 4.6.6 Test Phase 4.6 implementation
+  - [x] 4.6.6 Test Phase 4.6 implementation
     - Test drawing save via POST /api/drawing from Drawing.ts
     - Verify drawingId is returned and stored correctly
     - Test drawing load via GET /api/drawing from Quiz.ts

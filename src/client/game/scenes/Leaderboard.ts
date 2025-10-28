@@ -1,5 +1,6 @@
 import { Scene } from 'phaser';
-import { Score } from '../../../shared/types/api';
+import { Score, GetLeaderboardResponse } from '../../../shared/types/api';
+import { get, ApiError } from '../../utils/api';
 
 interface ScoreEntry {
   username: string;
@@ -13,16 +14,21 @@ export class Leaderboard extends Scene {
   private backButton!: Phaser.GameObjects.Text;
   private titleText!: Phaser.GameObjects.Text;
   private leaderboardContainer!: HTMLDivElement;
+  private drawingId: string | null = null;
 
   constructor() {
     super('Leaderboard');
   }
 
-  create() {
+  init(data: { drawingId?: string }) {
+    this.drawingId = data.drawingId || null;
+  }
+
+  async create() {
     this.cameras.main.setBackgroundColor(0x6a4c93);
 
     this.createUI();
-    this.loadLeaderboard();
+    await this.loadLeaderboard();
 
     this.scale.on('resize', () => this.handleResize());
   }
@@ -56,16 +62,31 @@ export class Leaderboard extends Scene {
       .setOrigin(0.5, 0);
   }
 
-  private loadLeaderboard() {
-    const mockScores: ScoreEntry[] = [
-      { username: 'Player1', score: 850, baseScore: 700, timeBonus: 150, submittedAt: Date.now() - 3600000 },
-      { username: 'Player2', score: 720, baseScore: 600, timeBonus: 120, submittedAt: Date.now() - 7200000 },
-      { username: 'Player3', score: 650, baseScore: 550, timeBonus: 100, submittedAt: Date.now() - 10800000 },
-      { username: 'Player4', score: 580, baseScore: 500, timeBonus: 80, submittedAt: Date.now() - 14400000 },
-      { username: 'Player5', score: 520, baseScore: 450, timeBonus: 70, submittedAt: Date.now() - 18000000 },
-    ];
+  private async loadLeaderboard() {
+    if (!this.drawingId) {
+      this.createLeaderboardHTML([]);
+      return;
+    }
 
-    this.createLeaderboardHTML(mockScores);
+    try {
+      const result = await get<GetLeaderboardResponse>(`/api/leaderboard/${this.drawingId}`);
+
+      const scores: ScoreEntry[] = result.scores.map((s) => ({
+        username: s.username,
+        score: s.score,
+        baseScore: s.baseScore,
+        timeBonus: s.timeBonus,
+        submittedAt: s.timestamp,
+      }));
+
+      this.createLeaderboardHTML(scores);
+    } catch (error) {
+      console.error('Error loading leaderboard:', error);
+      if (error instanceof ApiError) {
+        console.error('API Error:', error.message);
+      }
+      this.createLeaderboardHTML([]);
+    }
   }
 
   private createLeaderboardHTML(scores: ScoreEntry[]) {

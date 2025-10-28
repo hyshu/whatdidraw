@@ -5,11 +5,58 @@ describe('Phase 2: Quiz Scene and Playback System', () => {
   let scene: Quiz;
   let mockDrawingData: any;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     document.body.innerHTML = '';
     vi.clearAllMocks();
 
+    global.fetch = vi.fn((url: string | URL | Request, init?: RequestInit) => {
+      const urlString = typeof url === 'string' ? url : url.toString();
+
+      if (urlString.includes('/api/drawing') && (init?.method === 'GET' || !init?.method)) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({
+            type: 'getDrawing',
+            drawing: {
+              id: 'test-drawing-id',
+              answer: 'cat',
+              hint: 'It has four legs',
+              strokes: [
+                { points: [{ x: 100, y: 100 }, { x: 150, y: 150 }], color: '#000000', width: 3, timestamp: 0 },
+                { points: [{ x: 200, y: 200 }, { x: 250, y: 250 }], color: '#ff0000', width: 5, timestamp: 100 },
+              ],
+              totalStrokes: 2,
+              createdBy: 'test-user',
+              createdAt: Date.now(),
+            },
+          }),
+        } as Response);
+      }
+
+      if (urlString.includes('/api/guess')) {
+        const body = init?.body ? JSON.parse(init.body as string) : {};
+        const guess = (body.guess || '').trim().toLowerCase();
+        const isCorrect = guess === 'cat';
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({
+            type: 'submitGuess',
+            correct: isCorrect,
+            answer: 'cat',
+            score: isCorrect ? 1000 : 0,
+            baseScore: isCorrect ? 800 : 0,
+            timeBonus: isCorrect ? 200 : 0,
+          }),
+        } as Response);
+      }
+
+      return Promise.reject(new Error(`Unhandled fetch: ${urlString}`));
+    });
+
     mockDrawingData = {
+      id: 'test-drawing-id',
       answer: 'cat',
       hint: 'It has four legs',
       strokes: [
@@ -38,7 +85,7 @@ describe('Phase 2: Quiz Scene and Playback System', () => {
     localStorage.setItem('currentQuiz', JSON.stringify(mockDrawingData));
 
     scene = new Quiz();
-    scene.create();
+    await scene.create();
   });
 
   afterEach(() => {
@@ -49,7 +96,13 @@ describe('Phase 2: Quiz Scene and Playback System', () => {
   describe('Basic Playback Viewer (2.1)', () => {
     it('should load quiz scene and display canvas correctly', () => {
       expect(scene['canvas']).toBeDefined();
-      expect(scene['drawingData']).toEqual(mockDrawingData);
+      expect(scene['drawingData']).toMatchObject({
+        id: mockDrawingData.id,
+        answer: mockDrawingData.answer,
+        hint: mockDrawingData.hint,
+        strokes: mockDrawingData.strokes,
+        totalStrokes: mockDrawingData.totalStrokes,
+      });
     });
 
     it('should create playback viewer with 360x360 canvas', () => {
@@ -58,7 +111,13 @@ describe('Phase 2: Quiz Scene and Playback System', () => {
     });
 
     it('should initialize with drawing data from localStorage', () => {
-      expect(scene['drawingData']).toEqual(mockDrawingData);
+      expect(scene['drawingData']).toMatchObject({
+        id: mockDrawingData.id,
+        answer: mockDrawingData.answer,
+        hint: mockDrawingData.hint,
+        strokes: mockDrawingData.strokes,
+        totalStrokes: mockDrawingData.totalStrokes,
+      });
     });
 
     it('should create play/pause button', () => {
@@ -179,12 +238,22 @@ describe('Phase 2: Quiz Scene and Playback System', () => {
       expect(hintText.text).toContain('Hint: It has four legs');
     });
 
-    it('should not display hint when unavailable', () => {
+    it('should not display hint when unavailable', async () => {
       const dataWithoutHint = { ...mockDrawingData, hint: undefined };
-      localStorage.setItem('currentQuiz', JSON.stringify(dataWithoutHint));
+
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({
+            type: 'getDrawing',
+            drawing: dataWithoutHint,
+          }),
+        } as Response)
+      );
 
       const newScene = new Quiz();
-      newScene.create();
+      await newScene.create();
 
       const hintText = newScene['hintText'];
       expect(hintText.text).toBe('');
@@ -244,11 +313,11 @@ describe('Phase 2: Quiz Scene and Playback System', () => {
       }
     });
 
-    it('should display answer after incorrect guess', () => {
+    it('should display answer after incorrect guess', async () => {
       const input = scene['guessInput'];
       if (input) {
         input.value = 'dog';
-        scene['handleGuessSubmit']();
+        await scene['handleGuessSubmit']();
         const scoreDisplay = scene['scoreDisplay'];
         expect(scoreDisplay?.textContent).toContain('cat');
       }
@@ -283,21 +352,21 @@ describe('Phase 2: Quiz Scene and Playback System', () => {
       expect(timeBonus).toBe(300);
     });
 
-    it('should display total score', () => {
+    it('should display total score', async () => {
       const input = scene['guessInput'];
       if (input) {
         input.value = 'cat';
-        scene['handleGuessSubmit']();
+        await scene['handleGuessSubmit']();
         const scoreDisplay = scene['scoreDisplay'];
         expect(scoreDisplay?.textContent).toContain('points');
       }
     });
 
-    it('should show score breakdown with base and time bonus', () => {
+    it('should show score breakdown with base and time bonus', async () => {
       const input = scene['guessInput'];
       if (input) {
         input.value = 'cat';
-        scene['handleGuessSubmit']();
+        await scene['handleGuessSubmit']();
         const scoreDisplay = scene['scoreDisplay'];
         expect(scoreDisplay?.textContent).toContain('Base Score');
         expect(scoreDisplay?.textContent).toContain('Time Bonus');
@@ -334,11 +403,11 @@ describe('Phase 2: Quiz Scene and Playback System', () => {
       }
     });
 
-    it('should show zero score for incorrect answer', () => {
+    it('should show zero score for incorrect answer', async () => {
       const input = scene['guessInput'];
       if (input) {
         input.value = 'dog';
-        scene['handleGuessSubmit']();
+        await scene['handleGuessSubmit']();
         const scoreDisplay = scene['scoreDisplay'];
         expect(scoreDisplay?.textContent).toContain('Incorrect');
       }
