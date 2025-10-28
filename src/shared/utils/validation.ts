@@ -139,18 +139,6 @@ export function sanitizeText(text: string): string {
     .replace(/<[^>]*>/g, '');
 }
 
-export function escapeHtml(text: string): string {
-  const htmlEntities: Record<string, string> = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#x27;',
-    '/': '&#x2F;',
-  };
-  return text.replace(/[&<>"'/]/g, (char) => htmlEntities[char] || char);
-}
-
 export function filterProfanity(text: string): ValidationResult {
   const errors: string[] = [];
 

@@ -206,39 +206,6 @@ describe('Phase 4 Server API Tests', () => {
       expect(scores[1].userId).toBe('user2');
     });
 
-    it('should calculate user rank correctly', () => {
-      const drawing = createMockDrawing(10);
-      const drawingId = storage.saveDrawing(drawing);
-
-      storage.saveScore({
-        drawingId,
-        userId: 'user1',
-        score: 1000,
-        baseScore: 700,
-        timeBonus: 300,
-        elapsedTime: 30,
-        viewedStrokes: 3,
-        submittedAt: Date.now(),
-      });
-
-      storage.saveScore({
-        drawingId,
-        userId: 'user2',
-        score: 800,
-        baseScore: 500,
-        timeBonus: 300,
-        elapsedTime: 30,
-        viewedStrokes: 5,
-        submittedAt: Date.now() + 1,
-      });
-
-      const rank1 = storage.getUserRank('user1', drawingId);
-      const rank2 = storage.getUserRank('user2', drawingId);
-
-      expect(rank1).toBe(1);
-      expect(rank2).toBe(2);
-    });
-
     it('should keep only highest score per user per drawing', () => {
       const drawing = createMockDrawing(10);
       const drawingId = storage.saveDrawing(drawing);
@@ -359,14 +326,6 @@ describe('Phase 4 Server API Tests', () => {
 
       const all = storage.getAllDrawings();
       expect(all.length).toBe(0);
-    });
-
-    it('should handle missing user rank gracefully', () => {
-      const drawing = createMockDrawing(10);
-      const drawingId = storage.saveDrawing(drawing);
-
-      const rank = storage.getUserRank('non-existent-user', drawingId);
-      expect(rank).toBeUndefined();
     });
   });
 });

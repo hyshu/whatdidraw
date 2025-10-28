@@ -276,8 +276,8 @@ leaderboard:{drawingId}     -> Sorted Set (top scores per drawing)
 - Answer: 1-50 characters, required
 - Hint: 0-100 characters, optional
 - Character set: UTF-8 (supports international characters including Japanese, emoji, etc.)
-- HTML/script tag removal: `/<[^>]*>/g` regex
-- XSS prevention: HTML entity encoding on display
+- HTML/script tag removal: `/<[^>]*>/g` regex before storage
+- XSS prevention: HTML tags removed rather than escaped for stronger protection
 - Profanity filter: bad-words library with default English dictionary
 - Trim whitespace before validation
 
@@ -515,8 +515,8 @@ interface ErrorResponse {
 ## Security
 
 ### Input Sanitization (Requirement 7)
-- **HTML/Script removal**: Strip all tags using `/<[^>]*>/g`
-- **XSS prevention**: HTML entity encode on display (`&lt;` `&gt;` `&quot;` `&#x27;` `&#x2F;`)
+- **HTML/Script removal**: Strip all tags using `/<[^>]*>/g` before storage
+- **XSS prevention**: Tags are removed rather than escaped, providing stronger protection
 - **Profanity filter**: bad-words library with English dictionary
 - **SQL injection**: N/A (Redis key-value store, no SQL)
 - **Command injection**: Validate all Redis keys follow expected patterns

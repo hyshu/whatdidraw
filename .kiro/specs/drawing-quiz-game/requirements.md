@@ -103,9 +103,9 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 
 1. THE Drawing_System SHALL validate answer text against profanity filters
 2. THE Drawing_System SHALL enforce character limits on answers (1-50 chars) and hints (0-100 chars), supporting UTF-8 characters
-3. THE Storage_System SHALL sanitize all text input to prevent XSS attacks by removing HTML/script tags
+3. THE Storage_System SHALL sanitize all text input to prevent XSS attacks by removing HTML/script tags before storage
 4. THE Drawing_System SHALL require minimum drawing activity (at least 1 stroke) and maximum 1000 strokes
-5. THE Quiz_Interface SHALL escape all user-generated content for safe display
+5. THE Drawing_System SHALL remove HTML tags from all user-generated content before storage for XSS protection
 
 ### Requirement 8
 

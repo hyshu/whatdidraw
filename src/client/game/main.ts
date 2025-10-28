@@ -1,6 +1,4 @@
 import { Boot } from './scenes/Boot';
-import { GameOver } from './scenes/GameOver';
-import { Game as MainGame } from './scenes/Game';
 import { MainMenu } from './scenes/MainMenu';
 import { Drawing } from './scenes/Drawing';
 import { Quiz } from './scenes/Quiz';
@@ -19,7 +17,7 @@ const config: Phaser.Types.Core.GameConfig = {
     width: 1024,
     height: 768,
   },
-  scene: [Boot, Preloader, MainMenu, MainGame, GameOver, Drawing, Quiz, Leaderboard],
+  scene: [Boot, Preloader, MainMenu, Drawing, Quiz, Leaderboard],
 };
 
 const StartGame = (parent: string) => {

@@ -7,7 +7,6 @@ import {
   validateHint,
   validateDrawing,
   sanitizeText,
-  escapeHtml,
   filterProfanity,
   getCharacterCount,
   VALIDATION_RULES,
@@ -86,37 +85,6 @@ describe('Validation Utils - Phase 6', () => {
     it('should handle emojis without false positives', () => {
       const result = filterProfanity('🎨🖌️😀');
       expect(result.isValid).toBe(true);
-    });
-  });
-
-  describe('escapeHtml', () => {
-    it('should escape HTML entities', () => {
-      expect(escapeHtml('<script>alert("XSS")</script>')).toBe(
-        '&lt;script&gt;alert(&quot;XSS&quot;)&lt;&#x2F;script&gt;'
-      );
-    });
-
-    it('should escape ampersands', () => {
-      expect(escapeHtml('Tom & Jerry')).toBe('Tom &amp; Jerry');
-    });
-
-    it('should escape quotes', () => {
-      expect(escapeHtml('He said "hello"')).toBe('He said &quot;hello&quot;');
-      expect(escapeHtml("It's mine")).toBe('It&#x27;s mine');
-    });
-
-    it('should escape forward slashes', () => {
-      expect(escapeHtml('</div>')).toBe('&lt;&#x2F;div&gt;');
-    });
-
-    it('should handle text without special characters', () => {
-      expect(escapeHtml('hello world')).toBe('hello world');
-    });
-
-    it('should handle UTF-8 characters without modifying them', () => {
-      expect(escapeHtml('こんにちは')).toBe('こんにちは');
-      expect(escapeHtml('你好')).toBe('你好');
-      expect(escapeHtml('🎨')).toBe('🎨');
     });
   });
 
@@ -605,18 +573,16 @@ describe('Validation Utils - Phase 6', () => {
       expect(sanitized).not.toContain('<img');
     });
 
-    it('should handle combined sanitization and escaping', () => {
+    it('should handle combined sanitization', () => {
       const maliciousInput = '<b onclick="alert(1)">Click me</b>';
       const sanitized = sanitizeText(maliciousInput);
-      const escaped = escapeHtml(sanitized);
-      expect(escaped).toBe('Click me');
+      expect(sanitized).toBe('Click me');
     });
 
-    it('should preserve safe content after XSS prevention', () => {
+    it('should preserve safe content after sanitization', () => {
       const safeInput = 'This is a cat 🐱';
       const sanitized = sanitizeText(safeInput);
-      const escaped = escapeHtml(sanitized);
-      expect(escaped).toBe('This is a cat 🐱');
+      expect(sanitized).toBe('This is a cat 🐱');
     });
   });
 

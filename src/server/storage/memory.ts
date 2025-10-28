@@ -71,15 +71,6 @@ export class MemoryStorage {
   getTopScores(drawingId: string, limit: number = 5): Score[] {
     return this.getScoresByDrawing(drawingId).slice(0, limit);
   }
-
-  getUserRank(userId: string, drawingId: string): number | undefined {
-    const scores = this.getScoresByDrawing(drawingId);
-    const userScore = scores.find(s => s.userId === userId);
-    if (!userScore) {
-      return undefined;
-    }
-    return scores.findIndex(s => s.userId === userId) + 1;
-  }
 }
 
 export const storage = new MemoryStorage();

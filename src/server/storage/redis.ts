@@ -194,16 +194,4 @@ export class RedisStorage {
     const scores = await this.getScoresByDrawing(drawingId);
     return scores.slice(0, limit);
   }
-
-  async getUserRank(userId: string, drawingId: string): Promise<number | undefined> {
-    const leaderboardKey = `leaderboard:${drawingId}`;
-    const rank = await this.redis.zRank(leaderboardKey, userId);
-
-    if (rank === undefined || rank === null) {
-      return undefined;
-    }
-
-    const cardinality = await this.redis.zCard(leaderboardKey);
-    return cardinality - rank;
-  }
 }
