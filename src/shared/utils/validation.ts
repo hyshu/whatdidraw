@@ -1,4 +1,5 @@
 import { Point, Stroke, Drawing } from '../types/api';
+import { Filter } from 'bad-words';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -15,6 +16,8 @@ export const VALIDATION_RULES = {
   MIN_HINT_LENGTH: 0,
   MAX_HINT_LENGTH: 100,
 } as const;
+
+const profanityFilter = new Filter();
 
 export function validateStrokeCount(count: number): ValidationResult {
   const errors: string[] = [];
@@ -87,13 +90,19 @@ export function validateStroke(stroke: Stroke): ValidationResult {
 export function validateAnswer(answer: string): ValidationResult {
   const errors: string[] = [];
   const trimmed = answer.trim();
+  const charCount = getCharacterCount(trimmed);
 
-  if (trimmed.length < VALIDATION_RULES.MIN_ANSWER_LENGTH) {
+  if (charCount < VALIDATION_RULES.MIN_ANSWER_LENGTH) {
     errors.push(`Answer must be at least ${VALIDATION_RULES.MIN_ANSWER_LENGTH} character`);
   }
 
-  if (trimmed.length > VALIDATION_RULES.MAX_ANSWER_LENGTH) {
+  if (charCount > VALIDATION_RULES.MAX_ANSWER_LENGTH) {
     errors.push(`Answer cannot exceed ${VALIDATION_RULES.MAX_ANSWER_LENGTH} characters`);
+  }
+
+  const profanityCheck = filterProfanity(trimmed);
+  if (!profanityCheck.isValid) {
+    errors.push(...profanityCheck.errors);
   }
 
   return {
@@ -105,9 +114,17 @@ export function validateAnswer(answer: string): ValidationResult {
 export function validateHint(hint: string): ValidationResult {
   const errors: string[] = [];
   const trimmed = hint.trim();
+  const charCount = getCharacterCount(trimmed);
 
-  if (trimmed.length > VALIDATION_RULES.MAX_HINT_LENGTH) {
+  if (charCount > VALIDATION_RULES.MAX_HINT_LENGTH) {
     errors.push(`Hint cannot exceed ${VALIDATION_RULES.MAX_HINT_LENGTH} characters`);
+  }
+
+  if (trimmed.length > 0) {
+    const profanityCheck = filterProfanity(trimmed);
+    if (!profanityCheck.isValid) {
+      errors.push(...profanityCheck.errors);
+    }
   }
 
   return {
@@ -120,6 +137,39 @@ export function sanitizeText(text: string): string {
   return text
     .trim()
     .replace(/<[^>]*>/g, '');
+}
+
+export function escapeHtml(text: string): string {
+  const htmlEntities: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#x27;',
+    '/': '&#x2F;',
+  };
+  return text.replace(/[&<>"'/]/g, (char) => htmlEntities[char] || char);
+}
+
+export function filterProfanity(text: string): ValidationResult {
+  const errors: string[] = [];
+
+  if (profanityFilter.isProfane(text)) {
+    errors.push('Text contains inappropriate language');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+  };
+}
+
+export function getCharacterCount(text: string): number {
+  if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
+    const segmenter = new Intl.Segmenter('en', { granularity: 'grapheme' });
+    return Array.from(segmenter.segment(text)).length;
+  }
+  return Array.from(text).length;
 }
 
 export function validateDrawing(drawing: Partial<Drawing>): ValidationResult {

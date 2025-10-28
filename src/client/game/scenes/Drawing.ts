@@ -373,26 +373,30 @@ export class Drawing extends Scene {
     cancelButton.onmouseout = () => cancelButton.style.background = '#e74c3c';
 
     answerInput.addEventListener('input', () => {
-      answerCounter.textContent = `${answerInput.value.length}/50 characters`;
+      const charCount = Array.from(answerInput.value).length;
+      answerCounter.textContent = `${charCount}/50 characters`;
     });
 
     hintInput.addEventListener('input', () => {
-      hintCounter.textContent = `${hintInput.value.length}/100 characters`;
+      const charCount = Array.from(hintInput.value).length;
+      hintCounter.textContent = `${charCount}/100 characters`;
     });
 
     submitButton.addEventListener('click', () => {
       const answer = answerInput.value.trim();
-      if (answer.length === 0) {
+      const answerCharCount = Array.from(answer).length;
+      if (answerCharCount === 0) {
         alert('Answer is required and must be at least 1 character.');
         return;
       }
-      if (answer.length > 50) {
+      if (answerCharCount > 50) {
         alert('Answer must be 50 characters or less.');
         return;
       }
 
       const hint = hintInput.value.trim();
-      if (hint.length > 100) {
+      const hintCharCount = Array.from(hint).length;
+      if (hintCharCount > 100) {
         alert('Hint must be 100 characters or less.');
         return;
       }

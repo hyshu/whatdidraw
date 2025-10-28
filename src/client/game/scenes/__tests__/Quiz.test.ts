@@ -270,7 +270,7 @@ describe('Phase 2: Quiz Scene and Playback System', () => {
     it('should create submit button', () => {
       const button = scene['submitButton'];
       expect(button).toBeDefined();
-      expect(button?.textContent).toBe('Submit Guess');
+      expect(button?.textContent).toBe('Submit');
     });
 
     it('should validate correct answer', () => {
