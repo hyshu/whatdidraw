@@ -1,16 +1,5 @@
 import { Scene } from 'phaser';
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface Stroke {
-  points: Point[];
-  color: string;
-  width: number;
-  timestamp: number;
-}
+import { Point, Stroke } from '../../../shared/types/api';
 
 interface DrawingData {
   answer: string;

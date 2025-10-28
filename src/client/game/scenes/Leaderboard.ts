@@ -1,4 +1,5 @@
 import { Scene } from 'phaser';
+import { Score } from '../../../shared/types/api';
 
 interface ScoreEntry {
   username: string;

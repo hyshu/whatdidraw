@@ -1,16 +1,11 @@
 import { Scene } from 'phaser';
-
-interface Point {
-  x: number;
-  y: number;
-}
-
-interface Stroke {
-  points: Point[];
-  color: string;
-  width: number;
-  timestamp: number;
-}
+import { Point, Stroke, Drawing as DrawingData } from '../../../shared/types/api';
+import {
+  validateStrokeCount,
+  validateAnswer,
+  validateHint,
+  sanitizeText,
+} from '../../../shared/utils/validation';
 
 export class Drawing extends Scene {
   private canvas!: Phaser.GameObjects.Graphics;
@@ -453,9 +448,32 @@ export class Drawing extends Scene {
   }
 
   private saveDrawing(answer: string, hint: string) {
+    const sanitizedAnswer = sanitizeText(answer);
+    const sanitizedHint = sanitizeText(hint);
+
+    const strokeCountValidation = validateStrokeCount(this.strokes.length);
+    if (!strokeCountValidation.isValid) {
+      alert(strokeCountValidation.errors.join('\n'));
+      return;
+    }
+
+    const answerValidation = validateAnswer(sanitizedAnswer);
+    if (!answerValidation.isValid) {
+      alert(answerValidation.errors.join('\n'));
+      return;
+    }
+
+    if (sanitizedHint.length > 0) {
+      const hintValidation = validateHint(sanitizedHint);
+      if (!hintValidation.isValid) {
+        alert(hintValidation.errors.join('\n'));
+        return;
+      }
+    }
+
     const quizData = {
-      answer,
-      hint: hint || undefined,
+      answer: sanitizedAnswer,
+      hint: sanitizedHint || undefined,
       strokes: this.strokes,
       totalStrokes: this.strokes.length,
     };
