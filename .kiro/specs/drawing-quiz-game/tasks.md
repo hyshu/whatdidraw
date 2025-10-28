@@ -46,7 +46,7 @@ The phases progress from:
 - [ ] 1. Create drawing canvas system (Visual feedback immediately)
 - [ ] 1.1 Implement basic Phaser drawing scene
   - Create new DrawingScene in Phaser
-  - Set up 600x400px canvas
+  - Set up 360x360px canvas
   - Wire up to main menu "Create Drawing" button
   - Basic mouse/touch drawing (simple lines first)
   - _Requirements: 1.1, 10.1_
@@ -94,7 +94,7 @@ The phases progress from:
   - _Requirements: 5.2, 5.3, 5.4_
 
 - [ ] 1.5 Test Phase 1 implementation
-  - Verify drawing canvas initializes correctly (600x400px)
+  - Verify drawing canvas initializes correctly (360x360px)
   - Test mouse and touch drawing functionality
   - Test all drawing tools (color palette, brush sizes, pen/eraser toggle)
   - Test clear canvas with confirmation dialog
@@ -260,7 +260,7 @@ The phases progress from:
 
 - [ ] 4.2 Add basic validation (client-side first)
   - Validate stroke count (1-1000)
-  - Validate coordinates within bounds
+  - Validate coordinates within bounds (360x360)
   - Check answer length (1-50 chars)
   - Simple text sanitization (remove HTML tags)
   - _Requirements: 7.2, 7.3, 7.4_
@@ -272,7 +272,7 @@ The phases progress from:
   - Verify hint is optional in Drawing interface
   - Test mock data uses new TypeScript types correctly
   - Test stroke count validation (1-1000 range)
-  - Verify coordinates are validated within canvas bounds (600x400)
+  - Verify coordinates are validated within canvas bounds (360x360)
   - Test answer length validation (1-50 chars)
   - Test hint length validation (0-100 chars)
   - Verify text sanitization removes HTML tags
@@ -412,7 +412,7 @@ The phases progress from:
     - Canvas initialization failure: "Unable to load drawing canvas. Please refresh the page."
     - Network timeout: "Connection timeout. Retrying..."
     - Missing drawing (404): "This drawing no longer exists. Try another one."
-    - Invalid input (400): Show specific validation message
+    - Invalid input (360): Show specific validation message
     - Redis failure (500): "Unable to process request. Please try again."
   - Add localStorage full error handling
   - Provide refresh/retry buttons where appropriate
@@ -452,7 +452,7 @@ The phases progress from:
     - Canvas initialization failure message
     - Network timeout message with retry
     - Missing drawing (404) message
-    - Invalid input (400) with validation details
+    - Invalid input (360) with validation details
     - Redis failure (500) message
   - Test localStorage full error handling
   - Verify refresh/retry buttons appear where appropriate

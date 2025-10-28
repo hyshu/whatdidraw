@@ -11,7 +11,7 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 - **Scoring_System**: The algorithm that calculates points based on guess timing and accuracy
 - **Storage_System**: The Redis-based data persistence layer for drawings and scores
 - **Quiz_Interface**: The user interface for viewing and guessing drawings
-- **Canvas**: The 600x400px HTML5 drawing surface
+- **Canvas**: The 360x360px HTML5 drawing surface
 - **Stroke**: A continuous drawing action with points, color, width, and timing data
 - **Guess_Session**: A user's attempt to identify a drawing during playback
 
@@ -23,7 +23,7 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 
 #### Acceptance Criteria
 
-1. WHEN a user accesses drawing mode, THE Drawing_System SHALL provide a 600x400px canvas for drawing
+1. WHEN a user accesses drawing mode, THE Drawing_System SHALL provide a 360x360px canvas for drawing
 2. WHILE drawing, THE Drawing_System SHALL capture stroke data including coordinates, color, width, and timestamps
 3. THE Drawing_System SHALL provide drawing tools including pen, eraser, undo, and clear functions
 4. THE Drawing_System SHALL offer 8 color options (black, red, green, blue, yellow, magenta, cyan, white)

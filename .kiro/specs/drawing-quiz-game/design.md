@@ -95,8 +95,8 @@ interface Stroke {
 }
 
 interface Point {
-  x: number;                 // 0-600, rounded to 1 decimal
-  y: number;                 // 0-400, rounded to 1 decimal
+  x: number;                 // 0-360, rounded to 1 decimal
+  y: number;                 // 0-360, rounded to 1 decimal
 }
 ```
 
@@ -118,7 +118,7 @@ interface Score {
 ## Client Components
 
 ### Drawing Canvas
-- 600x400px HTML5 canvas with Phaser.js
+- 360x360px HTML5 canvas with Phaser.js
 - Tools: pen, eraser, undo, clear
 - Colors: 8 options (black, red, green, blue, yellow, magenta, cyan, white)
 - Brush sizes: 5 options (1px, 3px, 5px, 8px, 12px)
@@ -157,7 +157,7 @@ GET  /api/leaderboard/:id   - Get top 5 for drawing
 
 ### Drawing Handler
 - Validates minimum 1 stroke, maximum 1000 strokes
-- Validates coordinates within 600x400 bounds
+- Validates coordinates within 360x360 bounds
 - Sanitizes answer (1-50 chars) and hint (0-100 chars)
 - Applies profanity filter using bad-words library
 - Removes HTML/script tags via regex
@@ -215,7 +215,7 @@ leaderboard:{drawingId}     -> Sorted Set (top scores per drawing)
 ### Drawing Validation
 - Minimum: 1 stroke (required)
 - Maximum: 1000 strokes (prevent abuse)
-- Coordinates: x ∈ [0, 600], y ∈ [0, 400]
+- Coordinates: x ∈ [0, 360], y ∈ [0, 360]
 - Valid timestamps: monotonically increasing
 - Color: must be in predefined palette
 - Width: must be one of [1, 3, 5, 8, 12]
@@ -416,8 +416,8 @@ Home / Main Menu (Title Screen)
   - Client display: "This drawing no longer exists. Try another one."
   - Action: Offer "Play Another Quiz" button
 
-- **Invalid input (400)**:
-  - Response: `{error: "INVALID_INPUT", message: "Answer must be 1-50 characters", code: 400}`
+- **Invalid input (360)**:
+  - Response: `{error: "INVALID_INPUT", message: "Answer must be 1-50 characters", code: 360}`
   - Client display: Show specific validation message
   - Action: Allow user to correct and resubmit
 
@@ -437,7 +437,7 @@ Home / Main Menu (Title Screen)
 interface ErrorResponse {
   error: "NOT_FOUND" | "INVALID_INPUT" | "SERVER_ERROR" | "UNAUTHORIZED";
   message: string;  // User-friendly description
-  code: 400 | 404 | 500 | 401;
+  code: 360 | 404 | 500 | 401;
   details?: any;    // Optional technical details for debugging
 }
 ```
@@ -542,9 +542,9 @@ interface ErrorResponse {
 
 ## Design Decisions
 
-### Fixed Canvas Size (600×400px)
-- **Rationale**: Consistent aspect ratio (3:2) across all devices
-- **Benefit**: Fits mobile screens in portrait orientation
+### Fixed Canvas Size (360×360px)
+- **Rationale**: Consistent aspect ratio (1:1) across all devices
+- **Benefit**: Fits mobile screens in both portrait and landscape orientation
 - **Benefit**: Maintains drawing proportions for fair comparison
 - **Tradeoff**: Not full-screen on larger devices (acceptable)
 
