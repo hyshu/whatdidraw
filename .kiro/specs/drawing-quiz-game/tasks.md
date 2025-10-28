@@ -217,22 +217,22 @@ The phases progress from:
 
 ### Phase 4: Server Integration (Replace mocks with real API)
 
-- [ ] 4. Update server endpoints
-- [ ] 4.1 Implement drawing save endpoint
+- [x] 4. Update server endpoints
+- [x] 4.1 Implement drawing save endpoint
   - Replace mock POST /api/drawing
   - Add basic validation server-side
   - Generate simple ID (timestamp for now)
   - Store in memory/JSON file temporarily
   - _Requirements: 8.1, 8.2_
 
-- [ ] 4.2 Implement drawing retrieval
+- [x] 4.2 Implement drawing retrieval
   - Replace mock GET /api/drawing
   - Return saved drawings from storage
   - Add random selection logic
   - Handle "no drawings" case
   - _Requirements: 8.3, 8.4_
 
-- [ ] 4.3 Implement scoring endpoint
+- [x] 4.3 Implement scoring endpoint
   - Replace mock POST /api/guess or POST /api/scores
   - Calculate real scores: base = (total - viewed) × 100
   - Calculate time bonus: max(0, (60 - elapsed) × 10)
@@ -241,7 +241,7 @@ The phases progress from:
   - Return updated rankings and user's rank
   - _Requirements: 3.1, 3.2, 3.3, 8.6, 8.7, 8.8_
 
-- [ ] 4.4 Implement leaderboard endpoint
+- [x] 4.4 Implement leaderboard endpoint
   - Create GET /api/leaderboard/:id
   - Return top 5 scores for a drawing
   - Include score breakdown for each entry (base + time bonus)
@@ -249,7 +249,7 @@ The phases progress from:
   - Handle "no scores yet" case
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 4.5 Test Phase 4 implementation
+- [x] 4.5 Test Phase 4 implementation
   - Test POST /api/drawing saves drawing correctly
   - Verify server-side validation rejects invalid stroke counts
   - Test ID generation creates unique IDs

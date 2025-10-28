@@ -9,6 +9,8 @@ import {
 } from '../shared/types/api';
 import { redis, createServer, context } from '@devvit/web/server';
 import { createPost } from './core/post';
+import { storage } from './storage/memory';
+import { validateDrawing, sanitizeText } from '../shared/utils/validation';
 
 const app = express();
 
@@ -50,21 +52,29 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
 
 router.get<{ drawingId?: string }, GetDrawingResponse | { status: string; message: string }>(
   '/api/drawing',
-  async (_req, res): Promise<void> => {
+  async (req, res): Promise<void> => {
     try {
-      const mockDrawing: Drawing = {
-        id: 'mock-drawing-1',
-        answer: 'cat',
-        hint: 'A common pet',
-        category: 'Animals',
-        strokes: [],
-        createdBy: 'demo-user',
-        createdAt: Date.now(),
-      };
+      const { drawingId } = req.query;
+
+      let drawing: Drawing | undefined;
+
+      if (drawingId && typeof drawingId === 'string') {
+        drawing = storage.getDrawing(drawingId);
+      } else {
+        drawing = storage.getRandomDrawing();
+      }
+
+      if (!drawing) {
+        res.status(404).json({
+          status: 'error',
+          message: 'No drawings available'
+        });
+        return;
+      }
 
       res.json({
         type: 'getDrawing',
-        drawing: mockDrawing,
+        drawing,
       });
     } catch (error) {
       console.error('Error getting drawing:', error);
@@ -76,18 +86,62 @@ router.get<{ drawingId?: string }, GetDrawingResponse | { status: string; messag
   }
 );
 
-router.post<{}, SubmitGuessResponse | { status: string; message: string }, { guess: string; drawingId: string }>(
+router.post<{}, SubmitGuessResponse | { status: string; message: string }, { guess: string; drawingId: string; elapsedTime?: number; viewedStrokes?: number }>(
   '/api/guess',
   async (req, res): Promise<void> => {
     try {
-      const { guess } = req.body;
-      const correct = guess?.toLowerCase() === 'cat';
+      const { guess, drawingId, elapsedTime = 0, viewedStrokes = 0 } = req.body;
+
+      if (!guess || !drawingId) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Guess and drawingId are required'
+        });
+        return;
+      }
+
+      const drawing = storage.getDrawing(drawingId);
+      if (!drawing) {
+        res.status(404).json({
+          status: 'error',
+          message: 'Drawing not found'
+        });
+        return;
+      }
+
+      const sanitizedGuess = sanitizeText(guess);
+      const correct = sanitizedGuess.toLowerCase() === drawing.answer.toLowerCase();
+
+      let baseScore = 0;
+      let timeBonus = 0;
+      let totalScore = 0;
+
+      if (correct) {
+        const totalStrokes = drawing.totalStrokes;
+        baseScore = (totalStrokes - viewedStrokes) * 100;
+        timeBonus = Math.max(0, (60 - elapsedTime) * 10);
+        totalScore = baseScore + timeBonus;
+
+        const userId = context.userId || 'anonymous';
+        storage.saveScore({
+          drawingId,
+          userId,
+          score: totalScore,
+          baseScore,
+          timeBonus,
+          elapsedTime,
+          viewedStrokes,
+          submittedAt: Date.now(),
+        });
+      }
 
       res.json({
         type: 'submitGuess',
         correct,
-        answer: 'cat',
-        score: correct ? 100 : 0,
+        answer: drawing.answer,
+        score: totalScore,
+        baseScore,
+        timeBonus,
       });
     } catch (error) {
       console.error('Error submitting guess:', error);
@@ -99,13 +153,42 @@ router.post<{}, SubmitGuessResponse | { status: string; message: string }, { gue
   }
 );
 
-router.get<{}, GetLeaderboardResponse | { status: string; message: string }>(
-  '/api/leaderboard',
-  async (_req, res): Promise<void> => {
+router.get<{ id: string }, GetLeaderboardResponse | { status: string; message: string }>(
+  '/api/leaderboard/:id',
+  async (req, res): Promise<void> => {
     try {
+      const { id } = req.params;
+
+      if (!id) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Drawing ID is required'
+        });
+        return;
+      }
+
+      const drawing = storage.getDrawing(id);
+      if (!drawing) {
+        res.status(404).json({
+          status: 'error',
+          message: 'Drawing not found'
+        });
+        return;
+      }
+
+      const topScores = storage.getTopScores(id, 5);
+
+      const scoresWithUsernames = topScores.map(score => ({
+        username: score.userId,
+        score: score.score,
+        baseScore: score.baseScore,
+        timeBonus: score.timeBonus,
+        timestamp: score.submittedAt,
+      }));
+
       res.json({
         type: 'getLeaderboard',
-        scores: [],
+        scores: scoresWithUsernames,
       });
     } catch (error) {
       console.error('Error getting leaderboard:', error);
@@ -122,7 +205,37 @@ router.post<{}, SaveDrawingResponse | { status: string; message: string }, { dra
   async (req, res): Promise<void> => {
     try {
       const { drawing } = req.body;
-      const drawingId = `drawing-${Date.now()}`;
+
+      if (!drawing) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Drawing data is required'
+        });
+        return;
+      }
+
+      const validation = validateDrawing(drawing);
+      if (!validation.isValid) {
+        res.status(400).json({
+          status: 'error',
+          message: validation.errors.join('; ')
+        });
+        return;
+      }
+
+      const sanitizedAnswer = sanitizeText(drawing.answer || '');
+      const sanitizedHint = drawing.hint ? sanitizeText(drawing.hint) : undefined;
+
+      const drawingToSave = {
+        createdBy: drawing.createdBy || context.userId || 'anonymous',
+        createdAt: Date.now(),
+        answer: sanitizedAnswer,
+        hint: sanitizedHint,
+        strokes: drawing.strokes || [],
+        totalStrokes: drawing.strokes?.length || 0,
+      };
+
+      const drawingId = storage.saveDrawing(drawingToSave);
 
       res.json({
         type: 'saveDrawing',
