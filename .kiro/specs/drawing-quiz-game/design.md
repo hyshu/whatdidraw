@@ -123,14 +123,35 @@ interface Score {
 - Colors: 8 options (black, red, green, blue, yellow, magenta, cyan, white)
 - Brush sizes: 5 options (1px, 3px, 5px, 8px, 12px)
 - "Finish" button to complete drawing and trigger answer/hint input workflow
-- "Finish" button top-right corner
-- "Back" button in top-left corner (smaller than primary UI, no overlap with other elements)
+- "Back" button smaller than primary UI, no overlap with other elements
 - Showing stroke count
 - Answer/hint input form displayed after clicking "Finish" button
 - Return to title screen after submitting answer and hint
 - Touch input support with event debouncing (50ms)
 - Auto-save to localStorage every 5 seconds
 - Responsive layout preventing UI overlap and horizontal scrolling on all screen sizes
+
+#### Layout Structure
+```
+┌─────────────────────────────────────────────┐
+│ Back           Stroke count           Finish│
+├─────────────────────────────────────────────┤
+│                                             │
+│                                             │
+│                   Canvas                    │
+│                                             │
+│                                             │
+│                                             |
+├─────────────────────────────────────────────┤
+|                                         Undo|
+│ Pen colors: [Black][Red][Green][Blue]...    │
+│ Stroke sizes: [1px][3px][5px][8px][12px]    │
+└─────────────────────────────────────────────┘
+```
+- **Top bar**: Back button (left), Stroke count display (center), Finish button (right)
+- **Center area**: 360×360px drawing canvas
+- **Bottom-right of canvas**: Undo button
+- **Bottom controls**: Pen color selector (8 colors: black, red, green, blue, yellow, magenta, cyan, white) and stroke size selector (5 sizes)
 
 ### Quiz Interface
 - Playback viewer with play/pause controls
