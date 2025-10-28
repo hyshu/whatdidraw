@@ -408,8 +408,8 @@ export class Drawing extends Scene {
       this.hideInputModal();
     });
 
-    buttonContainer.appendChild(submitButton);
     buttonContainer.appendChild(cancelButton);
+    buttonContainer.appendChild(submitButton);
 
     this.inputModal.appendChild(title);
     this.inputModal.appendChild(answerLabel);
