@@ -28,9 +28,11 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 3. THE Drawing_System SHALL provide drawing tools including pen, eraser, undo, and clear functions
 4. THE Drawing_System SHALL offer 8 color options (black, red, green, blue, yellow, magenta, cyan, white)
 5. THE Drawing_System SHALL provide 5 brush sizes (1px, 3px, 5px, 8px, 12px)
-6. WHEN saving a drawing, THE Drawing_System SHALL require an answer between 1-50 characters
-7. WHERE a hint is provided, THE Drawing_System SHALL accept hints up to 100 characters
-8. THE Drawing_System SHALL limit drawings to a maximum of 1000 strokes to prevent performance issues
+6. THE Drawing_System SHALL provide a "Finish" button to complete the drawing and trigger the answer/hint input workflow
+7. WHEN the "Finish" button is clicked, THE Drawing_System SHALL display a form for answer (1-50 chars, required) and hint (0-100 chars, optional) input
+8. AFTER submitting answer and hint, THE Drawing_System SHALL return the user to the title screen
+9. WHERE a hint is provided, THE Drawing_System SHALL accept hints up to 100 characters
+10. THE Drawing_System SHALL limit drawings to a maximum of 1000 strokes to prevent performance issues
 
 ### Requirement 2
 
@@ -75,8 +77,11 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 
 1. THE Drawing_System SHALL support touch input for mobile devices
 2. THE Quiz_Interface SHALL adapt layout for screen sizes below 768px
-3. THE Drawing_System SHALL provide appropriately sized UI elements for touch interaction
+3. THE Drawing_System SHALL provide appropriately sized UI elements for touch interaction (minimum 44px)
 4. THE Quiz_Interface SHALL remain fully functional on mobile browsers
+5. THE system SHALL prevent UI element overlap on all screen sizes (mobile and desktop)
+6. THE system SHALL prevent horizontal scrolling on all screen sizes by using responsive layouts
+7. THE system SHALL stack UI elements vertically on narrow screens when necessary to maintain usability
 
 ### Requirement 6
 
@@ -143,4 +148,8 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 4. WHEN returning from Drawing_System to Quiz_Interface, THE system SHALL preserve any in-progress quiz state
 5. THE Storage_System SHALL track drawing creation and quiz attempts for each user
 6. THE system SHALL provide a unified navigation structure with three main modes: Create Drawing, Play Quiz, and per-drawing Leaderboards
-7. THE Reddit integration SHALL maintain user authentication across all system components
+7. THE system SHALL provide a "Back" button in the top-left corner of all game screens (drawing, quiz, leaderboard) to return to the previous screen
+8. THE "Back" button SHALL be sized smaller than primary UI elements to avoid visual interference
+9. THE "Back" button SHALL not overlap with any other UI components or interactive elements
+10. WHEN clicking the "Back" button with unsaved drawing strokes, THE system SHALL prompt the user for confirmation before navigating away
+11. THE Reddit integration SHALL maintain user authentication across all system components

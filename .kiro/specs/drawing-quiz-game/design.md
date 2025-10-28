@@ -122,8 +122,13 @@ interface Score {
 - Tools: pen, eraser, undo, clear
 - Colors: 8 options (black, red, green, blue, yellow, magenta, cyan, white)
 - Brush sizes: 5 options (1px, 3px, 5px, 8px, 12px)
+- "Finish" button to complete drawing and trigger answer/hint input workflow
+- "Back" button in top-left corner (smaller than primary UI, no overlap with other elements)
+- Answer/hint input form displayed after clicking "Finish" button
+- Return to title screen after submitting answer and hint
 - Touch input support with event debouncing (50ms)
 - Auto-save to localStorage every 5 seconds
+- Responsive layout preventing UI overlap and horizontal scrolling on all screen sizes
 
 ### Quiz Interface
 - Playback viewer with play/pause controls
@@ -236,19 +241,21 @@ leaderboard:{drawingId}     -> Sorted Set (top scores per drawing)
 ### Create Drawing Flow
 1. User draws on canvas (Drawing_System)
 2. Auto-save to localStorage every 5 seconds
-3. Click save button
+3. User clicks "Finish" button
 4. Client validates: minimum 1 stroke
-5. Client prompts for answer (1-50 chars) and optional hint (0-100 chars)
-6. Send to server: strokes, answer, hint, metadata
-7. Server validates: stroke count, bounds, text format
-8. Server sanitizes: remove HTML/scripts, apply profanity filter
-9. Server compresses stroke data (30-40% reduction)
-10. Server generates ID: Redis INCR on `drawings:id:counter`
-11. Server stores: `drawings:{id}`, `drawings:meta:{id}`, update `drawings:list`
-12. Server returns: drawing ID
-13. Client displays: success message with ID
-14. Client clears localStorage draft
-15. Client offers: "Create Another" or "Play Quiz"
+5. Client displays answer/hint input form (modal or screen transition)
+6. User enters answer (1-50 chars, required) and optional hint (0-100 chars)
+7. User submits answer/hint form
+8. Send to server: strokes, answer, hint, metadata
+9. Server validates: stroke count, bounds, text format
+10. Server sanitizes: remove HTML/scripts, apply profanity filter
+11. Server compresses stroke data (30-40% reduction)
+12. Server generates ID: Redis INCR on `drawings:id:counter`
+13. Server stores: `drawings:{id}`, `drawings:meta:{id}`, update `drawings:list`
+14. Server returns: drawing ID and success status
+15. Client displays: brief success message/notification with ID
+16. Client clears localStorage draft
+17. Client navigates: return to title screen
 
 ### Quiz Flow
 1. User selects "Play Quiz" (Quiz_Interface)
@@ -355,24 +362,29 @@ For attempt in 1..3:
 
 ### Mode Structure
 ```
-Home / Main Menu
+Home / Main Menu (Title Screen)
  ├─ Create Drawing
  │   ├─ Canvas (active drawing)
- │   └─ Save → Confirmation → Create Another | Play Quiz
+ │   ├─ Finish → Answer/Hint Input Form → Return to Title Screen
+ │   └─ Back button (top-left) → Title Screen (with confirmation if unsaved)
  ├─ Play Quiz
  │   ├─ Random Drawing Selection
  │   ├─ Playback & Guess
- │   └─ Results → Play Another | Create Drawing | View Leaderboard
+ │   ├─ Results → Play Another | Create Drawing | View Leaderboard
+ │   └─ Back button (top-left) → Title Screen
  └─ Leaderboard (per drawing)
      ├─ Top 5 Scores
      ├─ User's Rank (if applicable)
-     └─ Back to Previous Mode
+     └─ Back button (top-left) → Previous Mode
 ```
 
 ### Unified Navigation
-- Back button available in all modes
+- "Back" button available in all modes, positioned in top-left corner
+- Back button sized smaller than primary UI elements to avoid visual clutter
+- Back button positioned with padding (10-15px from edges) to prevent overlap
 - Returns to previous mode based on `session:lastMode`
-- Main menu accessible from all scenes
+- Confirmation prompt when clicking back with unsaved drawing strokes
+- Main menu (title screen) accessible from all scenes via back button
 - Reddit app integration maintains overall navigation context
 
 ## Error Handling
@@ -468,6 +480,16 @@ interface ErrorResponse {
   - Above: Two column layout where appropriate
 - **Touch targets**: Minimum 44×44px for all interactive elements
 - **Viewport**: `<meta name="viewport" content="width=device-width, initial-scale=1">`
+- **UI Overlap Prevention**:
+  - All UI elements positioned to prevent overlap on all screen sizes
+  - Back button (top-left) with sufficient padding (10-15px) to avoid overlap with other elements
+  - Drawing tools, canvas, and buttons arranged using flexible layouts (flexbox/grid)
+  - Vertical stacking of elements on narrow screens when needed
+- **Horizontal Scrolling Prevention**:
+  - No horizontal scrolling on any screen size (320px to 1920px+)
+  - Test on common mobile widths: 320px, 375px, 414px, 768px
+  - Test on desktop widths: 1024px, 1440px, 1920px
+  - Use max-width constraints and flexible sizing to fit all screen widths
 
 ## Security
 

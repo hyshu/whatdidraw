@@ -66,12 +66,32 @@ The phases progress from:
   - _Requirements: 1.2, 1.8_
 
 - [ ] 1.4 Add answer and hint input UI
-  - Create form for answer input (1-50 chars, required)
-  - Create form for hint input (0-100 chars, optional)
+  - Add "Finish" button to complete drawing (triggers answer/hint input modal/screen)
+  - Create form for answer input (1-50 chars, required) shown after clicking "Finish"
+  - Create form for hint input (0-100 chars, optional) shown after clicking "Finish"
   - Add character counter for both fields
   - Show inline validation feedback
   - Display UTF-8 character support message
-  - _Requirements: 1.6, 1.7, 7.2_
+  - Return to title screen after submitting answer and hint
+  - _Requirements: 1.6, 1.7, 7.2, 10.2_
+
+- [ ] 1.4.1 Add back button and layout optimization
+  - Add "Back" button in top-left corner of drawing scene
+  - Size back button smaller than primary UI elements to avoid interference
+  - Ensure back button doesn't overlap with drawing tools or canvas
+  - Position back button with appropriate padding (e.g., 10-15px from edges)
+  - Add confirmation prompt if unsaved strokes exist when clicking back
+  - _Requirements: 10.6, UI/UX consistency_
+
+- [ ] 1.4.2 Implement responsive layout for mobile and desktop
+  - Design layout to prevent horizontal scrolling on all screen sizes
+  - Ensure drawing tools, canvas, and buttons don't overlap on mobile (below 768px)
+  - Stack UI elements vertically on narrow screens if needed
+  - Test layout on common mobile screen widths (320px, 375px, 414px, 768px)
+  - Test layout on desktop screen widths (1024px, 1440px, 1920px)
+  - Ensure all interactive elements remain accessible without overlap
+  - Use flexible positioning (flexbox/grid) for adaptive layouts
+  - _Requirements: 5.2, 5.3, 5.4_
 
 - [ ] 1.5 Test Phase 1 implementation
   - Verify drawing canvas initializes correctly (600x400px)
@@ -81,11 +101,25 @@ The phases progress from:
   - Test stroke capture stores correct data (coordinates, color, width)
   - Test undo functionality removes last stroke correctly
   - Test stroke counter updates accurately
+  - Test "Finish" button appears and is clickable
+  - Verify clicking "Finish" opens answer/hint input form
   - Test answer input validation (1-50 chars, required field)
   - Test hint input validation (0-100 chars, optional field)
   - Test character counter displays correctly for both fields
   - Verify UTF-8 character support message is displayed
-  - _Requirements: 1.1-1.8, 10.1_
+  - Test returning to title screen after submitting answer and hint
+  - Test "Back" button appears in top-left corner
+  - Verify back button is smaller than primary UI elements
+  - Test back button doesn't overlap with drawing tools or canvas
+  - Test confirmation prompt when clicking back with unsaved strokes
+  - Test back button returns to title screen
+  - Test layout on mobile screen widths (320px, 375px, 414px, 768px)
+  - Test layout on desktop screen widths (1024px, 1440px, 1920px)
+  - Verify no horizontal scrolling on any screen size
+  - Verify no UI element overlaps on mobile or desktop
+  - Test UI elements stack properly on narrow screens
+  - Verify all interactive elements remain accessible on all screen sizes
+  - _Requirements: 1.1-1.8, 5.2-5.4, 10.1, 10.2, 10.6_
 
 ### Phase 2: Playback System
 
