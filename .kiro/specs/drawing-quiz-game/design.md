@@ -123,6 +123,7 @@ interface Score {
 - Colors: 8 options (black, red, green, blue, yellow, magenta, cyan, white)
 - Brush sizes: 5 options (1px, 3px, 5px, 8px, 12px)
 - "Finish" button to complete drawing and trigger answer/hint input workflow
+- "Finish" button top-right corner
 - "Back" button in top-left corner (smaller than primary UI, no overlap with other elements)
 - Answer/hint input form displayed after clicking "Finish" button
 - Return to title screen after submitting answer and hint
