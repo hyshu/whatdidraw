@@ -7,7 +7,8 @@ What Did I Draw is a drawing quiz game for Reddit's Devvit platform. Users creat
 **Core Modes:**
 1. **Create Mode**: Draw with basic tools and set answer/hint
 2. **Quiz Mode**: Watch replay and submit guesses for points
-3. **Leaderboard Mode**: View top 5 scores per drawing
+3. **Leaderboard Mode**: View global player rankings (total scores) and per-drawing top 5 scores
+4. **My History Mode**: View personal quiz history and navigate to per-drawing leaderboards
 
 ## Architecture
 
@@ -70,8 +71,18 @@ Submit guess → Validate answer → Calculate points → Store score (atomic) �
 - Scoring_System calculates total score
 - Storage_System persists score atomically
 - Storage_System updates leaderboard in same transaction
+- Storage_System updates quiz history in same transaction (Requirement 11)
 - Storage_System returns updated rankings
-- Quiz_Interface displays results immediately
+- Quiz_Interface navigates to Quiz History scene (Requirement 11)
+- Quiz_Interface displays latest result and full history
+
+**Quiz History to Leaderboard (Requirement 11):**
+- User views quiz history in QuizHistoryScene
+- User clicks "View Leaderboard" for specific drawing
+- Quiz_Interface navigates to LeaderboardScene with drawingId
+- LeaderboardScene fetches top 5 scores with Reddit avatars
+- User Profile Handler fetches avatars from Reddit API (with caching)
+- LeaderboardScene displays usernames as u/username format
 
 ## Data Models
 
@@ -115,7 +126,72 @@ interface Score {
 }
 ```
 
+### User Profile Structure (Requirement 11)
+```typescript
+interface UserProfile {
+  userId: string;            // Reddit username
+  avatarUrl?: string;        // Reddit user avatar URL (optional)
+  displayName: string;       // Formatted as u/username
+}
+```
+
+### Global Leaderboard Structure
+```typescript
+interface GlobalLeaderboardEntry {
+  userId: string;            // Reddit username
+  totalScore: number;        // Sum of all best scores from answered quizzes
+  quizCount: number;         // Number of unique quizzes answered
+  lastUpdated: number;       // Unix timestamp of last score update
+  rank: number;              // Global ranking position (1-based)
+}
+```
+
+### Quiz History Structure (Requirement 11)
+```typescript
+interface QuizHistoryEntry {
+  drawingId: string;         // Reference to drawing
+  drawingAnswer: string;     // Answer text for reference
+  score: number;             // User's score on this quiz
+  rank: number;              // User's rank (1-5 if in top 5, null otherwise)
+  submittedAt: number;       // Unix timestamp
+  baseScore: number;         // Score breakdown for display
+  timeBonus: number;         // Score breakdown for display
+}
+```
+
 ## Client Components
+
+### Title Screen (Main Menu)
+- Primary navigation hub for all game modes
+- Main action buttons: "Create Drawing", "Play Quiz"
+- Secondary navigation buttons: "Leaderboard", "My History"
+- Leaderboard and My History buttons: smaller size, horizontally aligned
+- Responsive layout: buttons stack vertically on narrow screens
+
+#### Layout Structure
+```
+┌─────────────────────────────────────────────┐
+│                                             │
+│           What Did I Draw?                  │
+│                                             │
+├─────────────────────────────────────────────┤
+│                                             │
+│         [Create Drawing]                    │
+│                                             │
+│         [Play Quiz]                         │
+│                                             │
+│    [Leaderboard]  [My History]              │
+│     (small)         (small)                 │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+- **Title**: Game title centered at top
+- **Primary actions**: Large buttons for main game modes (Create Drawing, Play Quiz)
+- **Secondary actions**: Smaller buttons horizontally aligned
+  - "Leaderboard" button: Navigate to global leaderboard
+  - "My History" button: Navigate to personal quiz history
+- **Button sizing**: Secondary buttons ~60-70% size of primary buttons
+- **Spacing**: Consistent padding between all elements
 
 ### Drawing Canvas
 - 360x360px HTML5 canvas with Phaser.js
@@ -156,9 +232,10 @@ interface Score {
 - Playback viewer with play/pause controls
 - Guess input field with real-time validation
 - Score breakdown display (base + time bonus)
-- Top 5 leaderboard per drawing
+- Top 5 leaderboard per drawing with Reddit avatars (Requirement 11)
 - Showing stroke count
 - User's rank display if in top 5
+- Reddit user profiles: avatar (32x32px or 40x40px) + u/username format (Requirement 11)
 
 #### Layout Structure
 ```
@@ -196,15 +273,145 @@ interface Score {
 - Pause state maintained during guess submission
 - Completion notification to Quiz_Interface
 
+### Quiz History Interface (Requirement 11)
+- Display user's personal quiz history (all answered quizzes)
+- Show quiz result summary at top after answering
+- List entries with: drawing answer, score, rank, date
+- Sort by most recent first (descending submittedAt)
+- Pagination: 10 entries per page
+- Navigation buttons: "View Drawing Leaderboard", "Play Another Quiz", "Create Drawing"
+- Empty state: "No quizzes answered yet" message
+- Highlight just-completed quiz in list
+
+#### Layout Structure
+```
+┌─────────────────────────────────────────────┐
+│ Back        My Quiz History                 │
+├─────────────────────────────────────────────┤
+│                                             │
+│ 1. "Cat"          850 pts  Rank 2  Jan 15  │
+│    Base: 700  Bonus: 150                    │
+│    [View Leaderboard]                       │
+│                                             │
+│ 2. "House"        650 pts  Rank 5  Jan 14  │
+│    Base: 500  Bonus: 150                    │
+│    [View Leaderboard]                       │
+│                                             │
+│ 3. "Tree"         400 pts  Rank -  Jan 13  │
+│    Base: 400  Bonus: 0                      │
+│    [View Leaderboard]                       │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+- **Top bar**: Back button (left), "My Quiz History" title (center)
+- **Latest result**: Summary of just-completed quiz (if navigated from quiz result)
+- **History list**: Scrollable list of quiz entries (10 per page)
+  - Each entry: drawing answer, score, rank, date
+  - Score breakdown: base + time bonus
+  - "View Leaderboard" button for each drawing
+- **Bottom actions**: "Play Another Quiz", "Create Drawing" buttons
+
+### Leaderboard Interface (Requirement 11)
+- Display top 5 scores for a specific drawing
+- Show Reddit user profiles with avatars and u/username format
+- Display score breakdown (base score + time bonus) for each entry
+- Highlight current user's rank if in top 5
+- Navigation button to view user's personal quiz history
+- Empty state: "No scores yet" message
+
+#### Layout Structure
+```
+┌─────────────────────────────────────────────┐
+│ Back       Drawing Leaderboard              │
+├─────────────────────────────────────────────┤
+│ Drawing: "Cat"                              │
+├─────────────────────────────────────────────┤
+│                                             │
+│ 1. [Avatar] u/alice        850 pts         │
+│    Base: 700  Bonus: 150                    │
+│                                             │
+│ 2. [Avatar] u/bob          780 pts  (You)  │
+│    Base: 650  Bonus: 130                    │
+│                                             │
+│ 3. [Avatar] u/charlie      650 pts         │
+│    Base: 500  Bonus: 150                    │
+│                                             │
+│ 4. [Avatar] u/dave         600 pts         │
+│    Base: 550  Bonus: 50                     │
+│                                             │
+│ 5. [Avatar] u/eve          580 pts         │
+│    Base: 480  Bonus: 100                    │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+- **Top bar**: Back button (left), "Drawing Leaderboard" title (center), "My History" button (right)
+- **Drawing info**: Display drawing answer (e.g., "Cat")
+- **Leaderboard list**: Top 5 scores with Reddit user profiles
+  - Each entry: avatar (32x32px or 40x40px), u/username, total score
+  - Score breakdown: base + time bonus
+  - Highlight current user's entry with "(You)" indicator
+- **My History button**: Positioned in top-right corner, same row as Back button
+  - Navigates to user's personal quiz history (QuizHistoryScene)
+  - Same size as Back button for visual consistency
+- **Bottom actions**: "Play Another Quiz", "Create Drawing" buttons
+- **Empty state**: "No scores yet. Be the first to answer!"
+
+### Global Leaderboard Interface
+- Display global player rankings based on total scores (sum of all best quiz scores)
+- Show top players with Reddit user profiles (avatars and u/username format)
+- Display player's total score, quiz count, and global rank
+- Highlight current user's rank if in leaderboard
+- Pagination: Show top 10, 20, 50, or 100 players (configurable)
+- Navigation: Back to title screen
+- Empty state: "No players yet. Be the first!"
+
+#### Layout Structure
+```
+┌─────────────────────────────────────────────┐
+│ Back       Global Leaderboard               │
+├─────────────────────────────────────────────┤
+│                                             │
+│ 1. [Avatar] u/alice       2,450 pts        │
+│    Quizzes answered: 12                     │
+│                                             │
+│ 2. [Avatar] u/bob         2,100 pts (You)  │
+│    Quizzes answered: 8                      │
+│                                             │
+│ 3. [Avatar] u/charlie     1,850 pts        │
+│    Quizzes answered: 10                     │
+│                                             │
+│ 4. [Avatar] u/dave        1,600 pts        │
+│    Quizzes answered: 7                      │
+│                                             │
+│ 5. [Avatar] u/eve         1,420 pts        │
+│    Quizzes answered: 9                      │
+│                                             │
+│ ...                                         │
+│                                             │
+└─────────────────────────────────────────────┘
+```
+- **Top bar**: Back button (left), "Global Leaderboard" title (center)
+- **Leaderboard list**: Scrollable list of player rankings
+  - Each entry: rank number, avatar (32x32px or 40x40px), u/username, total score
+  - Additional info: number of quizzes answered
+  - Highlight current user's entry with "(You)" indicator
+- **Score calculation**: Sum of best scores from all unique quizzes answered by each player
+- **Ranking**: Sorted by total score (descending), ties broken by quiz count (ascending, fewer quizzes = higher rank)
+- **Pagination**: Default show top 50, with option to load more
+- **Bottom actions**: "Play Quiz", "Create Drawing" buttons
+
 ## Server Components
 
 ### API Handlers
 ```
-POST /api/drawings          - Save new drawing
-GET  /api/drawings/:id      - Get drawing data
-GET  /api/drawings/random   - Get random drawing
-POST /api/scores            - Submit score
-GET  /api/leaderboard/:id   - Get top 5 for drawing
+POST /api/drawings                    - Save new drawing
+GET  /api/drawings/:id                - Get drawing data
+GET  /api/drawings/random             - Get random drawing
+POST /api/scores                      - Submit score
+GET  /api/leaderboard/global          - Get global leaderboard (top players by total score)
+GET  /api/leaderboard/:id             - Get top 5 for drawing
+GET  /api/user/:userId/quiz-history   - Get user's quiz history (Requirement 11)
+GET  /api/user/:userId/profile        - Get Reddit user profile (avatar, etc.) (Requirement 11)
 ```
 
 ### Drawing Handler
@@ -236,6 +443,41 @@ GET  /api/leaderboard/:id   - Get top 5 for drawing
 - Validates data integrity on retrieval
 - Provides error recovery mechanisms
 
+### Quiz History Handler (Requirement 11)
+- Fetches user's complete quiz history from Redis
+- Validates user authentication via Reddit context
+- Retrieves entries from `user:{userId}:quiz-history` sorted set
+- Uses ZREVRANGE for most-recent-first ordering
+- Implements pagination (default: 10 entries per page)
+- Enriches data with drawing answers from `drawings:meta:{id}`
+- Calculates rank from leaderboard position
+- Returns QuizHistoryEntry array with full details
+- Handles empty history case
+
+### User Profile Handler (Requirement 11)
+- Fetches Reddit user profile via Reddit API
+- Retrieves user avatar URL from Reddit
+- Formats username as u/username
+- Implements avatar caching (TTL: 1 hour) to reduce API calls
+- Cache key: `cache:avatar:{userId}`
+- Provides default avatar fallback if unavailable
+- Returns UserProfile with avatar and display name
+
+### Global Leaderboard Handler
+- Fetches global player rankings from Redis sorted set
+- Calculates total score for each player (sum of best scores from all unique quizzes)
+- Retrieves player data including quiz count and last update timestamp
+- Supports pagination (default: top 50 players, configurable to 10/20/50/100)
+- Uses ZREVRANGE for ranking retrieval (sorted by total score, descending)
+- Enriches data with Reddit user profiles (avatars) via User Profile Handler
+- Calculates rank position (1-based) for each player
+- Highlights current user's position if in leaderboard
+- Returns GlobalLeaderboardEntry array with full details
+- Handles empty leaderboard case
+- Implements caching (TTL: 5 minutes) to reduce Redis load
+- Cache key: `cache:global-leaderboard:{limit}`
+- Invalidates cache on any score update
+
 ## Storage Schema
 
 ```
@@ -260,6 +502,29 @@ leaderboard:{drawingId}     -> Sorted Set (top scores per drawing)
                                Score: user's total score (for ranking)
                                Member: userId
                                Maintains top 5 automatically via ZADD
+
+# Quiz History (Requirement 11)
+user:{userId}:quiz-history  -> Sorted Set (user's answered quizzes)
+                               Score: submittedAt timestamp (for chronological sorting)
+                               Member: JSON string with {drawingId, score, baseScore,
+                                       timeBonus, rank, submittedAt}
+                               Use ZREVRANGE for most-recent-first retrieval
+
+# User Profiles (Requirement 11)
+cache:avatar:{userId}       -> String (cached Reddit avatar URL)
+                               TTL: 1 hour
+                               Reduces Reddit API calls
+
+# Global Leaderboard
+global:leaderboard          -> Sorted Set (global player rankings)
+                               Score: user's total score (sum of all best quiz scores)
+                               Member: userId
+                               Updated atomically when user score changes
+player:{userId}:stats       -> Hash (player statistics)
+                               Fields: totalScore, quizCount, lastUpdated
+cache:global-leaderboard:{limit} -> String (cached global leaderboard JSON)
+                               TTL: 5 minutes
+                               Reduces Redis queries for leaderboard display
 ```
 
 ## Input Validation
@@ -323,25 +588,42 @@ leaderboard:{drawingId}     -> Sorted Set (top scores per drawing)
 13. Client sends: guess text, elapsed time, viewed strokes
 14. Server validates: answer match (case-insensitive, trimmed)
 15. Server calculates: base score and time bonus
-16. Server updates: score and leaderboard atomically (see below)
-17. Server returns: score breakdown, rankings, user's rank
-18. Client displays: results, updated top 5 leaderboard
-19. Client offers: "Play Another" or "Create Drawing"
+16. Server updates: score, leaderboard, and quiz history atomically (see below)
+17. Server adds entry to `user:{userId}:quiz-history` sorted set
+18. Server returns: score breakdown, rankings, user's rank
+19. Client navigates: to Quiz History scene (Requirement 11)
+20. Client displays: latest result at top, full quiz history below
+21. Client offers: "View Drawing Leaderboard", "Play Another", "Create Drawing"
 
-### Atomic Score Update (Requirement 9)
+### Atomic Score Update (Requirement 9, 11)
 ```
 # Retry loop: up to 3 attempts
 For attempt in 1..3:
   WATCH scores:{drawingId}:{userId}
   WATCH leaderboard:{drawingId}
-  
+  WATCH user:{userId}:quiz-history
+  WATCH player:{userId}:stats
+  WATCH global:leaderboard
+
   # Get existing score
   existingScore = HGET scores:{drawingId}:{userId} "score"
-  
+
   # Only update if new score is better
   IF newScore > existingScore OR existingScore is NULL:
+    # Calculate rank from leaderboard position
+    rank = ZREVRANK leaderboard:{drawingId} userId + 1 (or null if not in top 5)
+
+    # Get current player stats for global leaderboard update
+    currentTotalScore = HGET player:{userId}:stats "totalScore" (default: 0)
+    currentQuizCount = HGET player:{userId}:stats "quizCount" (default: 0)
+
+    # Calculate new total score (subtract old score, add new score)
+    scoreDifference = newScore - (existingScore OR 0)
+    newTotalScore = currentTotalScore + scoreDifference
+    newQuizCount = currentQuizCount + (existingScore is NULL ? 1 : 0)
+
     MULTI
-      # Update user's score
+      # Update user's score for this drawing
       HMSET scores:{drawingId}:{userId}
         score: newScore
         baseScore: baseScore
@@ -349,14 +631,30 @@ For attempt in 1..3:
         elapsedTime: elapsedTime
         viewedStrokes: viewedStrokes
         submittedAt: timestamp
-      
-      # Update leaderboard (keeps top scores automatically)
+
+      # Update per-drawing leaderboard (keeps top scores automatically)
       ZADD leaderboard:{drawingId} newScore userId
-      
+
       # Trim to top 5 only
       ZREMRANGEBYRANK leaderboard:{drawingId} 0 -6
+
+      # Update quiz history (Requirement 11)
+      # Store as JSON: {drawingId, score, baseScore, timeBonus, rank, submittedAt}
+      ZADD user:{userId}:quiz-history timestamp JSON_STRING
+
+      # Update global leaderboard
+      ZADD global:leaderboard newTotalScore userId
+
+      # Update player stats
+      HMSET player:{userId}:stats
+        totalScore: newTotalScore
+        quizCount: newQuizCount
+        lastUpdated: timestamp
+
+      # Invalidate global leaderboard cache
+      DEL cache:global-leaderboard:*
     EXEC
-    
+
     IF EXEC succeeded:
       Break retry loop
     ELSE:
@@ -372,9 +670,12 @@ For attempt in 1..3:
 ### Phaser Scene Management
 - **Purpose**: Handle active game state and rendering
 - **Scenes**:
+  - `TitleScene`: Main menu with navigation to all modes
   - `DrawingScene`: Active canvas, tools, stroke recording
   - `QuizScene`: Playback engine, guess input, timer
-  - `LeaderboardScene`: Rankings display per drawing
+  - `QuizHistoryScene`: User's quiz history display (Requirement 11)
+  - `LeaderboardScene`: Rankings display per drawing (top 5 with Reddit avatars)
+  - `GlobalLeaderboardScene`: Global player rankings by total score
 - **Transitions**: Managed by Phaser scene stack
 
 ### Scene Lifecycle Management
@@ -431,12 +732,28 @@ Home / Main Menu (Title Screen)
  ├─ Play Quiz
  │   ├─ Random Drawing Selection
  │   ├─ Playback & Guess
- │   ├─ Results → Play Another | Create Drawing | View Leaderboard
+ │   ├─ Submit Answer → Quiz History
  │   └─ Back button (top-left) → Title Screen
- └─ Leaderboard (per drawing)
-     ├─ Top 5 Scores
+ ├─ Global Leaderboard
+ │   ├─ Display top players by total score (sum of all best quiz scores)
+ │   ├─ Show player avatars, usernames, total scores, and quiz counts
+ │   ├─ Pagination: top 50 by default (configurable)
+ │   ├─ Highlight current user's rank if in leaderboard
+ │   └─ Back button (top-left) → Title Screen
+ ├─ My History
+ │   ├─ Show Latest Result (if just completed quiz)
+ │   ├─ List All User's Answered Quizzes (most recent first)
+ │   ├─ Navigation Options:
+ │   │   ├─ View Drawing Leaderboard (for specific drawing)
+ │   │   ├─ Play Another Quiz
+ │   │   └─ Create Drawing
+ │   └─ Back button (top-left) → Title Screen
+ └─ Drawing Leaderboard (per drawing)
+     ├─ Top 5 Scores with Reddit Avatars (Requirement 11)
      ├─ User's Rank (if applicable)
-     └─ Back button (top-left) → Previous Mode
+     ├─ Username formatted as u/username (Requirement 11)
+     ├─ My History button (top-right) → My History (Requirement 11)
+     └─ Back button (top-left) → My History or Title Screen
 ```
 
 ### Unified Navigation
@@ -631,11 +948,19 @@ interface ErrorResponse {
 - **Implementation**: Retry up to 3 times with exponential backoff
 - **Tradeoff**: Slightly higher latency under contention (rare occurrence)
 
-### No Weekly/Global Rankings
-- **Rationale**: Per-drawing rankings sufficient for core gameplay
-- **Benefit**: Reduces storage complexity
-- **Benefit**: Clearer competition context (same drawing)
-- **Tradeoff**: No cross-drawing competition (out of scope)
+### Global Leaderboard with Per-Drawing Rankings
+- **Rationale**: Dual ranking system provides both individual drawing competition and overall player comparison
+- **Global leaderboard**: Sum of best scores from all unique quizzes answered by each player
+  - **Benefit**: Motivates players to answer more quizzes and improve overall performance
+  - **Benefit**: Provides long-term progression and competition context
+  - **Implementation**: Redis sorted set updated atomically with each score submission
+  - **Caching**: 5-minute TTL to reduce Redis load
+- **Per-drawing rankings**: Top 5 scores for each specific drawing
+  - **Benefit**: Clear competition context for each drawing
+  - **Benefit**: Encourages replay to improve rank on specific drawings
+  - **Implementation**: Separate sorted sets per drawing, trimmed to top 5
+- **Tradeoff**: Slightly increased storage and complexity (acceptable for enhanced engagement)
+- **No weekly rankings**: Not implemented to maintain simplicity (may be added in future)
 
 ### bad-words Library for Profanity Filtering
 - **Rationale**: Mature, maintained library with reasonable default dictionary

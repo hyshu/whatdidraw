@@ -149,3 +149,51 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 5. THE system SHALL provide a "Back" button in the top-left corner of all game screens (drawing, quiz, leaderboard) to return to the previous screen
 6. THE "Back" button SHALL be sized smaller than primary UI elements to avoid visual interference
 7. THE "Back" button SHALL not overlap with any other UI components or interactive elements
+
+### Requirement 11
+
+**User Story:** As a player, I want to see Reddit user profiles in leaderboards and track my quiz history, so that I can connect with other players and review my past performance.
+
+#### Acceptance Criteria
+
+1. THE Quiz_Interface SHALL display Reddit user avatars (32x32px or 40x40px) next to usernames in all leaderboards
+2. THE Quiz_Interface SHALL format usernames using Reddit style (u/username) in leaderboards
+3. THE Storage_System SHALL maintain a complete quiz history for each user including drawing ID, score, rank, and submission timestamp
+4. THE Quiz_Interface SHALL provide a quiz history view showing all quizzes the user has answered, sorted by most recent first
+5. THE quiz history view SHALL display drawing reference (thumbnail or title), score, rank, and answered date for each entry
+6. AFTER answering a quiz, THE system SHALL navigate to the quiz history view instead of the drawing leaderboard
+7. THE quiz history view SHALL provide navigation to individual drawing leaderboards and options to play another quiz or create a drawing
+8. THE drawing leaderboard view SHALL provide a "My History" button in the top-right corner (same row as Back button) to navigate to the user's quiz history view
+
+### Requirement 12
+
+**User Story:** As a player, I want to see global player rankings based on total scores, so that I can compare my overall performance with all players across all quizzes.
+
+#### Acceptance Criteria
+
+1. THE Quiz_Interface SHALL display a global leaderboard showing top players ranked by total score
+2. THE Scoring_System SHALL calculate each player's total score as the sum of their best scores from all unique quizzes answered
+3. THE Quiz_Interface SHALL display Reddit user avatars (32x32px or 40x40px) and usernames (u/username format) in the global leaderboard
+4. THE global leaderboard SHALL show each player's total score, number of quizzes answered, and global rank position
+5. THE Quiz_Interface SHALL highlight the current user's rank if they appear in the global leaderboard
+6. THE Storage_System SHALL maintain global player statistics including total score, quiz count, and last updated timestamp
+7. THE Storage_System SHALL update the global leaderboard atomically when any user's score changes
+8. THE global leaderboard SHALL support pagination with configurable limits (default: top 50 players)
+9. THE system SHALL implement caching for the global leaderboard with 5-minute TTL to reduce database load
+10. THE system SHALL invalidate the global leaderboard cache whenever any score is updated
+11. THE Quiz_Interface SHALL provide navigation to the global leaderboard from the title screen via a "Leaderboard" button
+12. THE global leaderboard SHALL display an empty state message "No players yet. Be the first!" when no scores exist
+13. THE global leaderboard SHALL provide a "Back" button to return to the title screen
+
+### Requirement 13
+
+**User Story:** As a player, I want convenient navigation buttons on the title screen, so that I can easily access my quiz history and the global leaderboard.
+
+#### Acceptance Criteria
+
+1. THE title screen SHALL display a "Leaderboard" button that navigates to the global leaderboard
+2. THE title screen SHALL display a "My History" button that navigates to the user's quiz history
+3. THE "Leaderboard" and "My History" buttons SHALL be sized smaller than primary action buttons (approximately 60-70% size)
+4. THE "Leaderboard" and "My History" buttons SHALL be horizontally aligned below the main action buttons
+5. THE title screen layout SHALL stack buttons vertically on narrow screens (below 768px) to prevent overlap
+6. THE title screen navigation buttons SHALL remain accessible on all screen sizes without causing horizontal scrolling

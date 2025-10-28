@@ -455,3 +455,135 @@ The phases progress from:
   - Test server-side validation matches client-side rules
   - Test validation error messages are descriptive
   - _Requirements: 7.1-7.5_
+
+### Phase 7: User Profile, Quiz History, and Global Leaderboard
+
+- [ ] 7. Enhance leaderboard with Reddit user profiles, quiz history, and global rankings
+- [ ] 7.1 Add Reddit user profile display to leaderboards
+  - Fetch Reddit user avatar/icon from Reddit API
+  - Display user avatar (32x32px or 40x40px) next to username in leaderboards
+  - Format username with Reddit style (u/username)
+  - Add fallback default avatar if user avatar unavailable
+  - Implement avatar caching to reduce API calls (TTL: 1 hour)
+  - Update drawing leaderboard (top 5 per drawing) to show avatars
+  - _Requirements: 11.1, 11.2_
+
+- [ ] 7.1.1 Update title screen with leaderboard navigation buttons
+  - Add "Leaderboard" button to title screen (navigates to global leaderboard)
+  - Add "My History" button to title screen
+  - Size both buttons smaller than primary action buttons (~60-70% size)
+  - Position buttons horizontally aligned below main action buttons
+  - Update TitleScene layout to accommodate new navigation buttons
+  - Test button layout on mobile and desktop screen sizes
+  - _Requirements: Title screen UI, navigation_
+
+- [ ] 7.2 Implement quiz history leaderboard (user's personal quiz history)
+  - Create new QuizHistoryScene in Phaser
+  - Create GET /api/user/:userId/quiz-history endpoint
+  - Return list of all quizzes user has answered with scores
+  - Display list with: drawing answer (or title), score, rank, answered date
+  - Sort by most recent first (descending by submittedAt)
+  - Add pagination if user has answered many quizzes (10 per page)
+  - Include "View Leaderboard" button to navigate to specific drawing's leaderboard
+  - Show "No quizzes answered yet" empty state
+  - _Requirements: 11.3, 11.4, 11.5_
+
+- [ ] 7.2.1 Implement global leaderboard (player total score rankings)
+  - Create new GlobalLeaderboardScene in Phaser
+  - Create GET /api/leaderboard/global endpoint
+  - Calculate total score for each player (sum of all best quiz scores)
+  - Return list with: userId, totalScore, quizCount, rank
+  - Fetch Reddit user profiles (avatars) for displayed players
+  - Display players sorted by total score (descending)
+  - Show player's rank, avatar (32x32px or 40x40px), username (u/username), total score, quiz count
+  - Highlight current user's rank if in leaderboard
+  - Support pagination (default: top 50 players, configurable)
+  - Implement caching with 5-minute TTL to reduce load
+  - Show "No players yet. Be the first!" empty state
+  - Add "Back" button to return to title screen
+  - _Requirements: Global leaderboard UI and functionality_
+
+- [ ] 7.3 Update quiz result navigation flow
+  - After quiz answer submission, navigate to QuizHistoryScene instead of DrawingLeaderboardScene
+  - Display quiz result summary at top: score breakdown, drawing answer, hint
+  - Highlight the just-completed quiz in the history list
+  - Add "View Drawing Leaderboard" button to navigate to specific drawing's top 5
+  - Add "Play Another Quiz" button to start new random quiz
+  - Add "Create Drawing" button to navigate to drawing mode
+  - _Requirements: 11.6, 11.7_
+
+- [ ] 7.3.1 Add My History button to Leaderboard scene
+  - Add "My History" button in top-right corner of LeaderboardScene
+  - Position button in same row as Back button (top bar)
+  - Size button same as Back button for visual consistency
+  - Button navigates to QuizHistoryScene when clicked
+  - Ensure button doesn't overlap with title or other UI elements
+  - Test button functionality on mobile and desktop
+  - _Requirements: 11.8_
+
+- [ ] 7.4 Add Redis storage for quiz history and global leaderboard
+  - Store user quiz history in Redis sorted set: `user:{userId}:quiz-history`
+  - Score: timestamp (for chronological sorting)
+  - Member: JSON string with {drawingId, score, baseScore, timeBonus, rank, submittedAt}
+  - Update sorted set atomically when score is submitted
+  - Implement retrieval with ZREVRANGE for recent-first order
+  - Store global leaderboard in Redis sorted set: `global:leaderboard`
+  - Score: user's total score (sum of all best quiz scores)
+  - Member: userId
+  - Store player stats in Redis hash: `player:{userId}:stats`
+  - Fields: totalScore, quizCount, lastUpdated
+  - Update global leaderboard and player stats atomically in score submission transaction
+  - Calculate score difference when updating (subtract old score, add new score)
+  - Increment quiz count only for first-time quiz answers (not for improved scores)
+  - Implement cache for global leaderboard: `cache:global-leaderboard:{limit}`
+  - Cache TTL: 5 minutes
+  - Invalidate cache on any score update (DEL cache:global-leaderboard:*)
+  - _Requirements: 11.3, 11.4, Global leaderboard storage_
+
+- [ ] 7.5 Test Phase 7 implementation
+  - Test Reddit user avatar fetching from API
+  - Verify avatar display in drawing leaderboards (32x32px or 40x40px)
+  - Test username formatting as u/username
+  - Verify default avatar fallback when user avatar unavailable
+  - Test avatar caching reduces redundant API calls (TTL: 1 hour)
+  - Test "Leaderboard" button appears on title screen
+  - Test "My History" button appears on title screen
+  - Test button sizes are smaller than primary action buttons (~60-70%)
+  - Test buttons are horizontally aligned and positioned correctly
+  - Test button layout on mobile and desktop screen sizes
+  - Test QuizHistoryScene displays user's answered quizzes
+  - Verify quiz history sorted by most recent first
+  - Test pagination for quiz history (10 per page)
+  - Verify "No quizzes answered yet" empty state
+  - Test navigation from quiz result to QuizHistoryScene
+  - Verify quiz result summary displays correctly
+  - Test "View Leaderboard" button navigation from quiz history
+  - Test "Play Another Quiz" button starts new quiz
+  - Test "Create Drawing" button navigates to drawing mode
+  - Test GlobalLeaderboardScene displays top players by total score
+  - Verify GET /api/leaderboard/global endpoint returns correct data
+  - Test global leaderboard sorted by total score (descending)
+  - Verify player's rank, avatar, username, total score, quiz count display correctly
+  - Test current user's rank is highlighted if in leaderboard
+  - Test pagination for global leaderboard (default: top 50)
+  - Verify "No players yet. Be the first!" empty state
+  - Test "Back" button navigates to title screen from global leaderboard
+  - Test "My History" button in LeaderboardScene navigates to QuizHistoryScene
+  - Verify "My History" button is positioned correctly (top-right, same row as Back)
+  - Test "My History" button on mobile and desktop screen sizes
+  - Verify "My History" button doesn't overlap with other UI elements
+  - Test Redis sorted set stores quiz history correctly
+  - Verify ZREVRANGE retrieves history in correct order
+  - Test global leaderboard Redis sorted set (`global:leaderboard`) stores correctly
+  - Test player stats Redis hash (`player:{userId}:stats`) stores correctly
+  - Verify atomic updates include global leaderboard and player stats
+  - Test score difference calculation when updating (old score subtracted, new added)
+  - Verify quiz count increments only for first-time answers
+  - Test global leaderboard cache (TTL: 5 minutes) works correctly
+  - Verify cache invalidation on score update
+  - Test atomic updates when score is submitted
+  - Test quiz history persistence across sessions
+  - Verify data consistency between scores, quiz history, and global leaderboard
+  - Test concurrent quiz submissions don't corrupt history or global leaderboard
+  - Test global leaderboard updates correctly when multiple users submit scores
+  - _Requirements: 11.1-11.8, Global leaderboard requirements_
