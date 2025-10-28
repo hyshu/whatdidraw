@@ -12,14 +12,11 @@ This plan follows a **UI-first approach** where visual, interactive features are
 
 The phases progress from:
 1. **Visual Foundation** → See drawing and playback working
-2. **Navigation** → Connect the UI pieces
-3. **Data Models** → Structure the data properly
-4. **Server Integration** → Replace mocks with real APIs
-5. **Redis Storage** → Add production persistence
-6. **Polish** → Mobile, errors, performance
-7. **Security** → Validation and filtering
-8. **Platform** → Devvit/Reddit integration
-9. **Testing** → Comprehensive test coverage
+2. **Data Models** → Structure the data properly
+3. **Server Integration** → Replace mocks with real APIs
+4. **Redis Storage** → Add production persistence
+5. **Security** → Validation and filtering
+6. **Testing** → Comprehensive test coverage
 
 ## Core Implementation Tasks
 
@@ -61,7 +58,7 @@ The phases progress from:
   - Implement undo functionality with visual feedback
   - Add stroke counter display
   - Store strokes temporarily in component state
-  - _Requirements: 1.2, 1.8_
+  - _Requirements: 1.2, 1.3, 1.10_
 
 - [x] 1.4 Add answer and hint input UI
   - Add "Finish" button to complete drawing (triggers answer/hint input modal/screen)
@@ -71,7 +68,7 @@ The phases progress from:
   - Show inline validation feedback
   - Display UTF-8 character support message
   - Return to title screen after submitting answer and hint
-  - _Requirements: 1.6, 1.7, 7.2, 10.2_
+  - _Requirements: 1.6, 1.7, 1.8, 7.2_
 
 - [x] 1.4.1 Add back button and layout optimization
   - Add "Back" button in top-left corner of drawing scene
@@ -79,7 +76,7 @@ The phases progress from:
   - Ensure back button doesn't overlap with drawing tools or canvas
   - Position back button with appropriate padding (e.g., 10-15px from edges)
   - Add confirmation prompt if unsaved strokes exist when clicking back
-  - _Requirements: 10.6, UI/UX consistency_
+  - _Requirements: 10.5, 10.6, 10.7, 10.8_
 
 - [x] 1.4.2 Implement responsive layout for mobile and desktop
   - Design layout to prevent horizontal scrolling on all screen sizes
@@ -89,7 +86,7 @@ The phases progress from:
   - Test layout on desktop screen widths (1024px, 1440px, 1920px)
   - Ensure all interactive elements remain accessible without overlap
   - Use flexible positioning (flexbox/grid) for adaptive layouts
-  - _Requirements: 5.2, 5.3, 5.4_
+  - _Requirements: 5.2, 5.3, 5.5, 5.6, 5.7_
 
 - [x] 1.5 Test Phase 1 implementation
   - Verify drawing canvas initializes correctly (360x360px)
@@ -185,84 +182,25 @@ The phases progress from:
   - Test navigation from quiz results to leaderboard
   - _Requirements: 2.1-2.5, 3.3, 4.1-4.4, 8.5_
 
-### Phase 3: Navigation and State (Connect the pieces)
+### Phase 3: Data Models and Backend (Now add the real logic)
 
-- [ ] 3. Implement navigation between modes
-- [ ] 3.1 Connect drawing and quiz scenes
-  - Add "Save Drawing" button (saves to localStorage for now)
-  - Show confirmation message with drawing ID after save
-  - Display "Create Another" and "Play Quiz" options after save
-  - Add "Play Quiz" from main menu
-  - Create mode switcher in UI
-  - _Requirements: 10.1, 10.2, 10.6_
-
-- [ ] 3.2 Add localStorage persistence
-  - Auto-save drawing every 5 seconds
-  - Restore drawing on page refresh
-  - Save quiz progress state
-  - Implement session state for navigation (session:lastMode)
-  - Clear drawing draft after successful save
-  - Clear quiz state on completion or explicit quit
-  - _Requirements: 10.3, 10.4, 10.5_
-
-- [ ] 3.2.1 Implement auto-save mechanism
-  - Set up setInterval timer (5 seconds) for drawing state
-  - Check for stroke changes before saving to avoid unnecessary writes
-  - Handle localStorage quota exceeded error gracefully
-  - Provide visual feedback on auto-save (e.g., "Draft saved" indicator)
-  - Debounce auto-save during rapid drawing to avoid performance impact
-  - Clear auto-save timer when leaving drawing mode
-  - _Requirements: 10.3, Design: State Management_
-
-- [ ] 3.3 Add navigation prompts
-  - Prompt "Save drawing before leaving?" when leaving Create mode with unsaved strokes
-  - Display "Play Another" and "Create Drawing" options after quiz completion
-  - Add back button to return to previous mode using session:lastMode
-  - Implement unified navigation structure (Create / Play / Leaderboard)
-  - _Requirements: 10.2, 10.4, 10.6_
-
-- [ ] 3.4 Test Phase 3 implementation
-  - Test "Save Drawing" button saves to localStorage
-  - Verify confirmation message displays with drawing ID after save
-  - Test "Create Another" and "Play Quiz" options appear after save
-  - Verify "Play Quiz" from main menu navigates correctly
-  - Test mode switcher UI functionality
-  - Test auto-save triggers every 5 seconds
-  - Verify auto-save checks for stroke changes before saving
-  - Test drawing restoration on page refresh
-  - Test quiz progress state persistence
-  - Verify session:lastMode is saved correctly
-  - Test drawing draft is cleared after successful save
-  - Test quiz state is cleared on completion or quit
-  - Test auto-save timer cleanup when leaving drawing mode
-  - Verify localStorage quota exceeded error is handled gracefully
-  - Test auto-save visual feedback ("Draft saved" indicator)
-  - Test auto-save debouncing during rapid drawing
-  - Test "Save drawing before leaving?" prompt displays when appropriate
-  - Verify "Play Another" and "Create Drawing" options after quiz completion
-  - Test back button returns to correct mode using session:lastMode
-  - Verify unified navigation structure (Create / Play / Leaderboard)
-  - _Requirements: 10.1-10.6_
-
-### Phase 4: Data Models and Backend (Now add the real logic)
-
-- [ ] 4. Implement data models
-- [ ] 4.1 Create proper TypeScript interfaces
+- [ ] 3. Implement data models
+- [ ] 3.1 Create proper TypeScript interfaces
   - Add Stroke and Point interfaces
   - Add Drawing interface with metadata (id, createdBy, createdAt, answer, hint, strokes, totalStrokes)
   - Add Score interface with breakdown (id, drawingId, userId, score, baseScore, timeBonus, elapsedTime, viewedStrokes, submittedAt)
   - Update existing mock data to use new types
   - Ensure hint is optional field in Drawing interface
-  - _Requirements: 1.6, 1.7, 1.8, 6.2, 8.1_
+  - _Requirements: 1.2, 1.9, 3.1, 3.2, 3.3, 8.1_
 
-- [ ] 4.2 Add basic validation (client-side first)
+- [ ] 3.2 Add basic validation (client-side first)
   - Validate stroke count (1-1000)
   - Validate coordinates within bounds (360x360)
   - Check answer length (1-50 chars)
   - Simple text sanitization (remove HTML tags)
   - _Requirements: 7.2, 7.3, 7.4_
 
-- [ ] 4.3 Test Phase 4 implementation
+- [ ] 3.3 Test Phase 3 implementation
   - Verify Stroke and Point interfaces are properly defined
   - Test Drawing interface includes all required metadata fields
   - Test Score interface includes breakdown fields (base, time bonus, etc.)
@@ -277,24 +215,24 @@ The phases progress from:
   - Verify TypeScript compiler catches type errors
   - _Requirements: 1.6-1.8, 6.2, 7.2-7.4, 8.1_
 
-### Phase 5: Server Integration (Replace mocks with real API)
+### Phase 4: Server Integration (Replace mocks with real API)
 
-- [ ] 5. Update server endpoints
-- [ ] 5.1 Implement drawing save endpoint
+- [ ] 4. Update server endpoints
+- [ ] 4.1 Implement drawing save endpoint
   - Replace mock POST /api/drawing
   - Add basic validation server-side
   - Generate simple ID (timestamp for now)
   - Store in memory/JSON file temporarily
   - _Requirements: 8.1, 8.2_
 
-- [ ] 5.2 Implement drawing retrieval
+- [ ] 4.2 Implement drawing retrieval
   - Replace mock GET /api/drawing
   - Return saved drawings from storage
   - Add random selection logic
   - Handle "no drawings" case
   - _Requirements: 8.3, 8.4_
 
-- [ ] 5.3 Implement scoring endpoint
+- [ ] 4.3 Implement scoring endpoint
   - Replace mock POST /api/guess or POST /api/scores
   - Calculate real scores: base = (total - viewed) × 100
   - Calculate time bonus: max(0, (60 - elapsed) × 10)
@@ -303,7 +241,7 @@ The phases progress from:
   - Return updated rankings and user's rank
   - _Requirements: 3.1, 3.2, 3.3, 8.6, 8.7, 8.8_
 
-- [ ] 5.4 Implement leaderboard endpoint
+- [ ] 4.4 Implement leaderboard endpoint
   - Create GET /api/leaderboard/:id
   - Return top 5 scores for a drawing
   - Include score breakdown for each entry (base + time bonus)
@@ -311,7 +249,7 @@ The phases progress from:
   - Handle "no scores yet" case
   - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 5.5 Test Phase 5 implementation
+- [ ] 4.5 Test Phase 4 implementation
   - Test POST /api/drawing saves drawing correctly
   - Verify server-side validation rejects invalid stroke counts
   - Test ID generation creates unique IDs
@@ -334,31 +272,31 @@ The phases progress from:
   - Verify API responses match expected format
   - _Requirements: 3.1-3.3, 4.1-4.3, 8.1-8.8_
 
-### Phase 6: Redis and Production Features (Make it production-ready)
+### Phase 5: Redis and Production Features (Make it production-ready)
 
-- [ ] 6. Add Redis storage
-- [ ] 6.1 Set up Redis connection
+- [ ] 5. Add Redis storage
+- [ ] 5.1 Set up Redis connection
   - Configure Redis client for Devvit
   - Implement connection error handling
   - Create key naming schema
   - Test basic operations
-  - _Requirements: 6.1_
+  - _Requirements: 6.3_
 
-- [ ] 6.2 Migrate to Redis storage
+- [ ] 5.2 Migrate to Redis storage
   - Move drawing storage to Redis
   - Implement ID generation with INCR
   - Add score storage in Redis
   - Create leaderboard with sorted sets
-  - _Requirements: 6.1, 6.3, 4.1_
+  - _Requirements: 6.3, 3.4, 3.5, 8.1_
 
-- [ ] 6.3 Add data compression
+- [ ] 5.3 Add data compression
   - Implement coordinate rounding (3→1 decimal)
   - Shorten property names
   - Verify compression ratio
   - Update decompression for client
-  - _Requirements: 6.2_
+  - _Requirements: 6.1, 6.2_
 
-- [ ] 6.4 Implement atomic updates
+- [ ] 5.4 Implement atomic updates
   - Add WATCH/MULTI/EXEC for scores and leaderboard updates
   - Check existing score before update (only update if new score is higher)
   - Keep only highest score per user per drawing
@@ -369,7 +307,7 @@ The phases progress from:
   - Test race conditions
   - _Requirements: 3.4, 9.2, 9.3, 9.4_
 
-- [ ] 6.5 Test Phase 6 implementation
+- [ ] 5.5 Test Phase 5 implementation
   - Test Redis client connection for Devvit
   - Verify connection error handling works correctly
   - Test key naming schema follows conventions
@@ -392,90 +330,17 @@ The phases progress from:
   - Test Redis failures trigger appropriate error handling
   - _Requirements: 3.4, 4.1, 6.1-6.3, 9.2-9.4_
 
-### Phase 7: Polish and Optimization
+### Phase 6: Security and Validation
 
-- [ ] 7. Add mobile support
-- [ ] 7.1 Implement touch optimization
-  - Implement touch event handling with 50ms debouncing
-  - Create responsive UI with 44px minimum touch targets
-  - Add mobile-specific layout adjustments below 768px
-  - _Requirements: 5.1, 5.2, 5.3, 5.4_
-
-- [ ] 7.2 Add error handling
-  - Add client-side error handling for network timeouts (30 seconds)
-  - Implement exponential backoff retry (1s, 2s, 4s, max 3 retries)
-  - Implement server-side error responses with proper format (error, message, code, details)
-  - Add user-friendly error messages for each error type:
-    - Canvas initialization failure: "Unable to load drawing canvas. Please refresh the page."
-    - Network timeout: "Connection timeout. Retrying..."
-    - Missing drawing (404): "This drawing no longer exists. Try another one."
-    - Invalid input (360): Show specific validation message
-    - Redis failure (500): "Unable to process request. Please try again."
-  - Add localStorage full error handling
-  - Provide refresh/retry buttons where appropriate
-  - _Requirements: Error handling from design document_
-
-- [ ] 7.3 Add performance optimizations
-  - Optimize rendering with requestAnimationFrame
-  - Add viewport meta tag for mobile
-  - Ensure smooth 60fps operation
-  - _Requirements: 5.4, mobile optimization_
-
-- [ ] 7.4 Add caching layer
-  - Implement leaderboard cache (5-min TTL)
-  - Add frequently accessed drawing cache (10-min TTL)
-  - Set up cache invalidation
-  - _Requirements: performance optimization_
-
-- [ ] 7.4.1 Implement cache invalidation logic
-  - Invalidate leaderboard:{drawingId} cache on new score submission
-  - Use Redis DEL to remove cache keys immediately after score update
-  - Handle cache miss scenarios by fetching from primary storage
-  - Implement lazy refresh: repopulate cache on next request after TTL expiry
-  - Track frequently accessed drawings (10+ accesses in last hour) for caching
-  - Use cache:leaderboard:{drawingId} and cache:drawing:{drawingId} key patterns
-  - _Requirements: Design: Performance Optimization - Caching_
-
-- [ ] 7.5 Test Phase 7 implementation
-  - Test touch event handling on mobile devices
-  - Verify 50ms debouncing prevents duplicate touches
-  - Test responsive UI scales correctly below 768px
-  - Verify touch targets meet 44px minimum size
-  - Test mobile-specific layout adjustments
-  - Test client-side error handling for network timeouts (30s)
-  - Verify exponential backoff retry (1s, 2s, 4s, max 3 retries)
-  - Test server-side error responses include proper format
-  - Verify each error type displays user-friendly message:
-    - Canvas initialization failure message
-    - Network timeout message with retry
-    - Missing drawing (404) message
-    - Invalid input (360) with validation details
-    - Redis failure (500) message
-  - Test localStorage full error handling
-  - Verify refresh/retry buttons appear where appropriate
-  - Test rendering uses requestAnimationFrame
-  - Verify viewport meta tag is present for mobile
-  - Test frame rate maintains 60fps during drawing
-  - Test leaderboard cache with 5-min TTL
-  - Test frequently accessed drawing cache with 10-min TTL
-  - Verify cache invalidation on score submission
-  - Test cache miss fetches from primary storage
-  - Test lazy refresh repopulates cache after TTL expiry
-  - Verify frequently accessed drawing tracking (10+ accesses/hour)
-  - Test cache key patterns (cache:leaderboard:*, cache:drawing:*)
-  - _Requirements: 5.1-5.4, Error handling from design, Performance optimization_
-
-### Phase 8: Security and Validation
-
-- [ ] 8. Add security features
-- [ ] 8.1 Implement profanity filter
+- [ ] 6. Add security features
+- [ ] 6.1 Implement profanity filter
   - Install bad-words npm package
   - Configure filter with default dictionary
   - Add UTF-8 support for international text
   - Test with sample inputs
-  - _Requirements: 7.1, 7.5_
+  - _Requirements: 7.1, 7.2_
 
-- [ ] 8.1.1 Test international character support (UTF-8)
+- [ ] 6.1.1 Test international character support (UTF-8)
   - Test Japanese and Chinese and Korean characters in answers and hints
   - Test emoji support (e.g., 🎨, 🖌️, 😀) in text fields
   - Verify character counting accuracy (1 emoji = 1 character, not byte count)
@@ -484,14 +349,14 @@ The phases progress from:
   - Test text input handling on mobile keyboards (IME support)
   - _Requirements: 7.2 (UTF-8 support)_
 
-- [ ] 8.2 Add comprehensive validation
+- [ ] 6.2 Add comprehensive validation
   - Implement full input validation utilities
   - Add text sanitization (XSS prevention)
   - Validate all user inputs
   - Add server-side validation
-  - _Requirements: 7.2, 7.3, 7.4_
+  - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
 
-- [ ] 8.3 Test Phase 8 implementation
+- [ ] 6.3 Test Phase 6 implementation
   - Test bad-words package installation and configuration
   - Verify profanity filter with default dictionary
   - Test profanity filter catches inappropriate words
@@ -514,65 +379,10 @@ The phases progress from:
   - Test validation error messages are descriptive
   - _Requirements: 7.1-7.5_
 
-### Phase 9: Platform Integration
+### Phase 7: Testing
 
-- [ ] 9. Devvit platform integration
-- [ ] 9.1 Configure Devvit environment
-  - Set up Devvit app manifest
-  - Configure permissions and capabilities
-  - Test local Devvit environment
-  - _Requirements: platform integration_
-
-- [ ] 9.1.1 Understand Devvit platform constraints
-  - Review Devvit Redis API documentation (key patterns, data types, limitations)
-  - Understand custom post integration requirements
-  - Learn Devvit app lifecycle and state management
-  - Identify Devvit-specific performance considerations
-  - Review Devvit's bundling and deployment process
-  - Understand rate limits and quota restrictions
-  - _Requirements: platform integration, Design: Devvit constraints_
-
-- [ ] 9.2 Integrate Reddit authentication
-  - Add Reddit user context to all endpoints
-  - Implement user identification
-  - Test authentication flow
-  - _Requirements: 10.7_
-
-- [ ] 9.2.1 Implement Reddit user context extraction
-  - Extract username from Devvit context object in all API handlers
-  - Pass user ID (username) to drawing save operations (createdBy field)
-  - Pass user ID to score submission for attribution
-  - Handle unauthenticated users gracefully (display error or prompt login)
-  - Test user context persistence across Phaser scene transitions
-  - Verify username display in leaderboards matches Reddit user
-  - Ensure Reddit session persists throughout app lifecycle
-  - _Requirements: 10.7, Design: Reddit Authentication_
-
-- [ ] 9.3 Test Phase 9 implementation
-  - Test Devvit app manifest is properly configured
-  - Verify permissions and capabilities are set correctly
-  - Test local Devvit environment setup
-  - Verify Devvit Redis API works with key patterns
-  - Test custom post integration in Devvit
-  - Verify app lifecycle and state management in Devvit
-  - Test Devvit bundling and deployment process
-  - Verify rate limits are respected
-  - Test quota restrictions handling
-  - Test Reddit user context extraction from Devvit context object
-  - Verify username is passed to drawing save operations (createdBy)
-  - Test user ID is passed to score submission correctly
-  - Verify unauthenticated users are handled gracefully
-  - Test user context persists across Phaser scene transitions
-  - Verify username in leaderboards matches Reddit user
-  - Test Reddit session persists throughout app lifecycle
-  - Verify all endpoints receive Reddit user context
-  - Test authentication flow from start to finish
-  - _Requirements: 10.7, Platform integration, Design: Devvit constraints, Design: Reddit Authentication_
-
-### Phase 10: Testing
-
-- [ ] 10. Testing and validation
-- [ ] 10.1 Create unit tests
+- [ ] 7. Testing and validation
+- [ ] 7.1 Create unit tests
   - Test drawing validation logic (stroke count, bounds, format)
   - Test scoring algorithm (base score, time bonus, edge cases)
   - Test data compression/decompression (round-trip integrity)
@@ -580,7 +390,7 @@ The phases progress from:
   - Test atomic transaction retry logic (success, failure, partial failure)
   - _Requirements: All core requirements_
 
-- [ ] 10.2 Add integration tests
+- [ ] 7.2 Add integration tests
   - Test complete drawing creation flow (save → retrieve with compression)
   - Test full quiz gameplay cycle (load → playback → guess → score)
   - Test score submission → ranking update (atomic operation verification)
@@ -588,19 +398,19 @@ The phases progress from:
   - Test localStorage state management (save/restore across transitions)
   - _Requirements: 8.1-8.8, 9.1-9.7_
 
-- [ ] 10.3 Add performance tests
+- [ ] 7.3 Add performance tests
   - Test canvas with 500+ strokes (rendering performance, memory usage)
   - Test concurrent score submissions (10+ simultaneous users on same drawing)
   - Test mobile touch responsiveness (input lag measurement, 60fps target)
   - Test Redis operations (query time under 50ms for 95th percentile)
   - Test compression efficiency (verify 30-40% reduction across sample set)
-  - _Requirements: 6.2, Performance optimization requirements_
+  - _Requirements: 5.1, 5.2, 5.3, 6.2, 6.4, 6.5_
 
-- [ ] 10.4 Add error handling tests
+- [ ] 7.4 Add error handling tests
   - Test network failures (timeout, retry logic, error display)
   - Test invalid inputs (validation messages, submission prevention)
   - Test Redis failures (transaction retries, error recovery)
   - Test concurrent update conflicts (WATCH/MULTI/EXEC behavior)
   - Test localStorage full scenario
   - Test canvas initialization failures
-  - _Requirements: Error handling requirements from design_
+  - _Requirements: 9.7_

@@ -128,7 +128,6 @@ interface Score {
 - Answer/hint input form displayed after clicking "Finish" button
 - Return to title screen after submitting answer and hint
 - Touch input support with event debouncing (50ms)
-- Auto-save to localStorage every 5 seconds
 - Responsive layout preventing UI overlap and horizontal scrolling on all screen sizes
 
 #### Layout Structure
@@ -291,22 +290,20 @@ leaderboard:{drawingId}     -> Sorted Set (top scores per drawing)
 
 ### Create Drawing Flow
 1. User draws on canvas (Drawing_System)
-2. Auto-save to localStorage every 5 seconds
-3. User clicks "Finish" button
-4. Client validates: minimum 1 stroke
-5. Client displays answer/hint input form (modal or screen transition)
-6. User enters answer (1-50 chars, required) and optional hint (0-100 chars)
-7. User submits answer/hint form
-8. Send to server: strokes, answer, hint, metadata
-9. Server validates: stroke count, bounds, text format
-10. Server sanitizes: remove HTML/scripts, apply profanity filter
-11. Server compresses stroke data (30-40% reduction)
-12. Server generates ID: Redis INCR on `drawings:id:counter`
-13. Server stores: `drawings:{id}`, `drawings:meta:{id}`, update `drawings:list`
-14. Server returns: drawing ID and success status
-15. Client displays: brief success message/notification with ID
-16. Client clears localStorage draft
-17. Client navigates: return to title screen
+2. User clicks "Finish" button
+3. Client validates: minimum 1 stroke
+4. Client displays answer/hint input form (modal or screen transition)
+5. User enters answer (1-50 chars, required) and optional hint (0-100 chars)
+6. User submits answer/hint form
+7. Send to server: strokes, answer, hint, metadata
+8. Server validates: stroke count, bounds, text format
+9. Server sanitizes: remove HTML/scripts, apply profanity filter
+10. Server compresses stroke data (30-40% reduction)
+11. Server generates ID: Redis INCR on `drawings:id:counter`
+12. Server stores: `drawings:{id}`, `drawings:meta:{id}`, update `drawings:list`
+13. Server returns: drawing ID and success status
+14. Client displays: brief success message/notification with ID
+15. Client navigates: return to title screen
 
 ### Quiz Flow
 1. User selects "Play Quiz" (Quiz_Interface)
@@ -378,37 +375,6 @@ For attempt in 1..3:
   - `LeaderboardScene`: Rankings display per drawing
 - **Transitions**: Managed by Phaser scene stack
 
-### localStorage Usage
-- **Purpose**: Persist state across page refreshes and mode transitions
-- **Keys**:
-  - `draft:strokes`: Auto-saved drawing strokes (cleared on save)
-  - `quiz:state:{drawingId}`: Active quiz progress (cleared on complete)
-  - `session:lastMode`: Last active mode for return navigation
-- **Behavior**:
-  - Auto-save drawing every 5 seconds
-  - Restore draft on return to Create Mode
-  - Preserve quiz state when switching to Create Mode
-  - Clear quiz state on completion or explicit quit
-
-### Transition Handling
-- **Create → Quiz**: 
-  - If unsaved strokes exist: prompt "Save drawing before leaving?"
-  - Save current mode to `session:lastMode`
-  - Switch to QuizScene
-- **Quiz → Create**: 
-  - Save quiz state to `quiz:state:{drawingId}` if in progress
-  - Switch to DrawingScene
-  - Restore draft if exists
-- **Any → Leaderboard**: 
-  - Maintain previous mode in `session:lastMode`
-  - Display rankings
-  - Back button returns to saved mode
-
-### Reddit Authentication
-- User context maintained across all components via Devvit context
-- Username used for score attribution and leaderboard display
-- Session persists throughout Reddit app lifecycle
-
 ## Navigation
 
 ### Mode Structure
@@ -433,10 +399,8 @@ Home / Main Menu (Title Screen)
 - "Back" button available in all modes, positioned in top-left corner
 - Back button sized smaller than primary UI elements to avoid visual clutter
 - Back button positioned with padding (10-15px from edges) to prevent overlap
-- Returns to previous mode based on `session:lastMode`
 - Confirmation prompt when clicking back with unsaved drawing strokes
 - Main menu (title screen) accessible from all scenes via back button
-- Reddit app integration maintains overall navigation context
 
 ## Error Handling
 
@@ -456,10 +420,6 @@ Home / Main Menu (Title Screen)
   - Display: Inline validation feedback below input field
   - Examples: "Answer must be 1-50 characters", "Drawing must have at least 1 stroke"
   - Prevent submission until valid
-
-- **localStorage full**:
-  - Display: "Unable to auto-save. Please save your drawing manually."
-  - Action: Disable auto-save, keep manual save functional
 
 ### Server Errors
 - **Missing drawing (404)**:
@@ -557,10 +517,6 @@ interface ErrorResponse {
 - All IDs: validate format before Redis queries
 - All user content: sanitize before storage and display
 
-### Authentication
-- Reddit user context verified on all API calls
-- User ID used for score attribution
-- No separate authentication system needed (handled by Devvit)
 
 ## Testing Requirements
 
@@ -576,7 +532,6 @@ interface ErrorResponse {
 - Score submission → ranking update: atomic operation verification
 - Complete quiz gameplay cycle: drawing load → playback → guess → score
 - Concurrent score submissions: verify atomic updates prevent race conditions
-- localStorage state management: save/restore across transitions
 
 ### Performance Tests
 - Canvas with 500+ strokes: rendering performance, memory usage
@@ -629,13 +584,6 @@ interface ErrorResponse {
 - **Benefit**: Reduces storage complexity
 - **Benefit**: Clearer competition context (same drawing)
 - **Tradeoff**: No cross-drawing competition (out of scope)
-
-### localStorage + Phaser Scene Management
-- **Rationale**: Each serves distinct purpose (Requirement 10)
-- **localStorage**: Persist across refreshes, background auto-save
-- **Phaser Scenes**: Active game state and rendering
-- **Benefit**: Smooth transitions without data loss
-- **Benefit**: Auto-save doesn't interfere with active gameplay
 
 ### bad-words Library for Profanity Filtering
 - **Rationale**: Mature, maintained library with reasonable default dictionary

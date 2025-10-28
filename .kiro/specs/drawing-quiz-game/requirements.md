@@ -144,12 +144,9 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 
 1. THE Quiz_Interface SHALL provide direct navigation to Drawing_System for creating new drawings
 2. AFTER saving a drawing, THE Drawing_System SHALL offer options to create another drawing or play available quizzes
-3. THE Quiz_Interface SHALL maintain user session state when transitioning between drawing and guessing modes using localStorage
-4. WHEN returning from Drawing_System to Quiz_Interface, THE system SHALL preserve any in-progress quiz state
-5. THE Storage_System SHALL track drawing creation and quiz attempts for each user
-6. THE system SHALL provide a unified navigation structure with three main modes: Create Drawing, Play Quiz, and per-drawing Leaderboards
-7. THE system SHALL provide a "Back" button in the top-left corner of all game screens (drawing, quiz, leaderboard) to return to the previous screen
-8. THE "Back" button SHALL be sized smaller than primary UI elements to avoid visual interference
-9. THE "Back" button SHALL not overlap with any other UI components or interactive elements
-10. WHEN clicking the "Back" button with unsaved drawing strokes, THE system SHALL prompt the user for confirmation before navigating away
-11. THE Reddit integration SHALL maintain user authentication across all system components
+3. THE Storage_System SHALL track drawing creation and quiz attempts for each user
+4. THE system SHALL provide a unified navigation structure with three main modes: Create Drawing, Play Quiz, and per-drawing Leaderboards
+5. THE system SHALL provide a "Back" button in the top-left corner of all game screens (drawing, quiz, leaderboard) to return to the previous screen
+6. THE "Back" button SHALL be sized smaller than primary UI elements to avoid visual interference
+7. THE "Back" button SHALL not overlap with any other UI components or interactive elements
+8. WHEN clicking the "Back" button with unsaved drawing strokes, THE system SHALL prompt the user for confirmation before navigating away

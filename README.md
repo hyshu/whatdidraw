@@ -36,7 +36,7 @@ Built with responsive layouts that prevent UI overlap and horizontal scrolling o
 Every drawing is created by real Reddit users with their own artistic style, cultural references, and creative interpretations, ensuring endless variety and community-relevant content.
 
 ### 🔄 **Seamless Mode Switching**
-Players can fluidly switch between creating drawings and playing quizzes with persistent state management, auto-save functionality, and intuitive navigation that maintains context.
+Players can fluidly switch between creating drawings and playing quizzes with intuitive navigation that maintains context.
 
 ## Technology Stack
 
@@ -215,15 +215,19 @@ This game is currently in active development with the following features impleme
 - **Answer/Hint Input**: Modal form system for completing drawings with character validation and UTF-8 support
 - **Navigation System**: Back buttons with confirmation prompts, smooth scene transitions, and proper positioning
 - **Quiz Interface**: Complete structure for viewing drawings, entering guesses, and receiving feedback
-- **Leaderboard Display**: Top 5 scores system with proper formatting and error handling
+- **Drawing Playback System**: Stroke-by-stroke replay with original timing preservation using requestAnimationFrame
+- **Playback Controls**: Play/pause/replay buttons with real-time progress tracking and state management
+- **Scoring Algorithm**: Dual-factor calculation (base score + time bonus) with partial stroke progress tracking
+- **Score Display**: Detailed breakdown showing base points, time bonus, unseen strokes, and elapsed time
+- **Leaderboard System**: Top 5 rankings per drawing with score breakdowns and empty state handling
+- **Answer Validation**: Case-insensitive matching with whitespace trimming and immediate feedback
 - **API Integration**: Client-server communication structure with comprehensive TypeScript types
 - **Game Flow**: Complete navigation between Create Drawing, Play Quiz, and Leaderboard modes
 - **Input Validation**: Character limits, required fields, and user-friendly error messages
 - **Mobile Touch Support**: Touch-optimized drawing with proper event handling
+- **Comprehensive Testing**: 143 unit tests covering all Phase 1 and Phase 2 functionality
 
 ### 🚧 **In Development**
-- **Drawing Playback System**: Stroke-by-stroke replay functionality for quiz mode
-- **Scoring Algorithm**: Base score + time bonus calculation system
 - **Redis Storage**: Data persistence and compression for drawings and scores
 - **Server Endpoints**: Complete API implementation for all game features
 - **Drawing Validation**: Input sanitization and profanity filtering
@@ -233,8 +237,6 @@ This game is currently in active development with the following features impleme
 - **Atomic Score Updates**: Concurrent user handling with Redis transactions
 - **Security Features**: XSS prevention and comprehensive input validation
 - **Testing Suite**: Unit, integration, and performance tests
-- **Reddit Integration**: Full Devvit platform integration with user authentication
-- **Advanced Features**: Auto-save, session management, and enhanced error handling
 
 ## Development Setup
 
