@@ -287,6 +287,55 @@ router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
   }
 });
 
+router.post('/internal/init-redis', async (_req, res): Promise<void> => {
+  try {
+    console.log('Starting Redis initialization...');
+
+    let deletedCount = 0;
+
+    // Get all drawing IDs from the sorted set
+    const drawingList = await redis.zRange('drawings:list', 0, -1, { by: 'rank' });
+    const drawingIds = drawingList?.map(item => item.member) || [];
+
+    console.log(`Found ${drawingIds.length} drawings to clean up`);
+
+    // Delete all drawing-related keys
+    for (const drawingId of drawingIds) {
+      await redis.del(`drawings:${drawingId}`);
+      await redis.del(`drawings:meta:${drawingId}`);
+      deletedCount += 2;
+
+      // Get all scores for this drawing from leaderboard
+      const leaderboard = await redis.zRange(`leaderboard:${drawingId}`, 0, -1, { by: 'rank' });
+      const userIds = leaderboard?.map(item => item.member) || [];
+
+      for (const userId of userIds) {
+        await redis.del(`scores:${drawingId}:${userId}`);
+        deletedCount++;
+      }
+
+      // Delete leaderboard
+      await redis.del(`leaderboard:${drawingId}`);
+      deletedCount++;
+    }
+
+    // Delete the drawings list
+    await redis.del('drawings:list');
+    deletedCount++;
+
+    // Reset counter
+    await redis.set('drawings:id:counter', '0');
+    deletedCount++;
+
+    console.log(`Redis initialized successfully. Cleaned ${drawingIds.length} drawings and deleted ${deletedCount} keys.`);
+
+    res.json({});
+  } catch (error) {
+    console.error('Error initializing Redis:', error);
+    res.status(500).json({});
+  }
+});
+
 app.use(router);
 
 const port = process.env.WEBBIT_PORT || 3000;

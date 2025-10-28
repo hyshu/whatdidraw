@@ -24,6 +24,13 @@
         "location": "subreddit",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/post-create"
+      },
+      {
+        "label": "Initialize Redis",
+        "description": "Clear all Redis data and reset counters",
+        "location": "subreddit",
+        "forUserType": "moderator",
+        "endpoint": "/internal/init-redis"
       }
     ]
   },
