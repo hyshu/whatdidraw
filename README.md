@@ -9,8 +9,8 @@ An innovative drawing guessing game built for Reddit using Devvit and Phaser.js.
 ### Core Gameplay
 - **Create Mode**: Draw something on a digital canvas (360×360px) with professional drawing tools including 8 colors, 5 brush sizes, and undo functionality
 - **Quiz Mode**: View drawings created by other players and try to guess what they drew based on hints and visual clues
-- **Scoring System**: Earn points based on correct guesses with time-based bonuses and stroke efficiency
-- **Leaderboards**: Compete with other Reddit users for the highest scores on individual drawings
+- **Scoring System**: Earn points based on correct guesses with competitive scoring
+- **Leaderboards**: Compete with other Reddit users for the highest scores
 
 ## What Makes This Game Innovative
 
@@ -30,7 +30,7 @@ Built with responsive design principles, the game works seamlessly on both deskt
 With community-generated content, the game offers unlimited replay value as new drawings are constantly being added by players, ensuring the experience never gets stale.
 
 ### 🎯 **Intelligent Scoring System**
-The scoring algorithm rewards both speed and efficiency - players earn more points for guessing correctly with fewer strokes viewed, creating strategic depth in when to make your guess.
+The scoring algorithm rewards correct guesses, creating competitive gameplay that encourages both quick thinking and careful observation.
 
 ## Technology Stack
 
@@ -93,7 +93,7 @@ The scoring algorithm rewards both speed and efficiency - players earn more poin
 1. **Start Guessing**: Click "Play Quiz" from the main menu
 2. **Game Layout**: Clean, focused interface for optimal guessing:
    - **Title**: "What Did I Draw?" at the top
-   - **Drawing Area**: Large central area where drawings appear
+   - **Drawing Area**: Large central area where drawings appear (currently shows placeholder)
    - **Hint Display**: Shows any hint provided by the artist
    - **Status Text**: Provides game feedback and instructions
    - **Guess Input**: Text field for entering your answer
@@ -108,8 +108,8 @@ The scoring algorithm rewards both speed and efficiency - players earn more poin
    - Press Enter or click "Submit Guess"
    - No character limits on guesses
 4. **Get Instant Feedback**:
-   - **Correct**: Green success message with your score
-   - **Incorrect**: Red message showing the correct answer
+   - **Correct**: Green success message with your score and transition to results
+   - **Incorrect**: Red message showing the correct answer, then loads new drawing
 5. **Continue Playing**: After each guess, a new drawing loads automatically
 
 #### **Quiz Features**
@@ -119,40 +119,27 @@ The scoring algorithm rewards both speed and efficiency - players earn more poin
 - **Hint System**: Optional clues help guide your thinking
 - **Mobile Optimized**: Touch-friendly interface with proper input handling
 
-### 🏆 **Scoring System**
+### 🏆 **Scoring & Leaderboards**
 
 #### **How Scoring Works**
-The game uses an intelligent scoring algorithm that rewards both speed and efficiency:
+The game tracks your performance and awards points for correct guesses:
 
-- **Base Score Calculation**: (total strokes - viewed strokes) × 100
-  - More points for guessing with fewer strokes viewed
-  - Encourages quick recognition and pattern matching
-- **Time Bonus**: max(0, (60 - elapsed seconds) × 10)
-  - Up to 600 bonus points for answers within 60 seconds
-  - Rewards quick thinking and confidence
-- **Total Score**: Base Score + Time Bonus
-- **Best Score Tracking**: Only your highest score per drawing is saved
+- **Correct Guesses**: Earn points for identifying drawings correctly
+- **Score Tracking**: Your score is displayed immediately after correct answers
+- **Competition**: Compete with other Reddit users for top positions
 
-#### **Strategic Scoring**
-- **Early Guessing**: Higher base scores for recognizing drawings quickly
-- **Speed Bonus**: Additional points for fast correct answers
-- **Risk vs. Reward**: Balance between waiting for more clues vs. guessing early
-- **Per-Drawing Competition**: Each drawing has its own leaderboard
-
-### 📊 **Leaderboard System**
-
-#### **Viewing Leaderboards**
+#### **Leaderboard System**
 1. **Access**: Click "Leaderboard" from main menu or view after completing a quiz
-2. **Top 5 Display**: Shows the highest scores for each drawing
-3. **Score Breakdown**: See individual scores with usernames
-4. **Your Ranking**: Your position displayed if you're in the top 5
+2. **Top 5 Display**: Shows the highest scores from the community
+3. **Username Display**: See which Reddit users achieved top scores
+4. **Score Values**: Full point totals displayed for comparison
+5. **Real-Time Updates**: Leaderboards update with new high scores
 
 #### **Leaderboard Features**
-- **Per-Drawing Rankings**: Each drawing maintains its own top 5 list
-- **Username Display**: See which Reddit users achieved top scores
-- **Score Values**: Full point totals displayed for comparison
-- **Real-Time Updates**: Leaderboards update immediately after new high scores
-- **Community Competition**: Friendly rivalry encourages improvement
+- **Community Rankings**: See how you compare to other players
+- **Score History**: Track top performers in the community
+- **Friendly Competition**: Encourages improvement and engagement
+- **Easy Access**: Available from main menu or after quiz completion
 
 ### 💡 **Pro Tips for Success**
 
@@ -166,7 +153,6 @@ The game uses an intelligent scoring algorithm that rewards both speed and effic
 - **Look for Key Details**: Focus on distinctive features and shapes
 - **Use Hints Wisely**: Combine visual clues with provided hints
 - **Trust Your Instincts**: First impressions are often correct
-- **Speed vs. Accuracy**: Balance quick guessing with careful observation
 - **Learn from Mistakes**: Incorrect guesses teach you about other players' styles
 
 #### **Community Engagement**
@@ -180,30 +166,33 @@ The game uses an intelligent scoring algorithm that rewards both speed and effic
 This game is currently in active development with the following features implemented:
 
 ### ✅ **Completed Features**
-- **Custom Title Screen**: Animated "What Did I Draw?" branding with smooth transitions
-- **Drawing System**: Full-featured canvas with 8 colors, 5 brush sizes, and undo functionality
-- **Responsive UI**: Mobile-optimized interface that works on all screen sizes
-- **Drawing Tools**: Complete toolset with color palette, brush size selector, and stroke counter
-- **Answer/Hint Input**: Modal form system for completing drawings with validation
-- **Navigation System**: Back buttons, confirmations, and smooth scene transitions
-- **Quiz Interface**: Basic structure for viewing and guessing drawings
-- **Leaderboard Display**: Top 5 scores system with proper formatting
-- **API Integration**: Client-server communication structure with TypeScript types
+- **Custom Title Screen**: Animated "What Did I Draw?" branding with smooth transitions and responsive scaling
+- **Drawing System**: Full-featured canvas with 8 colors, 5 brush sizes, undo functionality, and stroke tracking
+- **Responsive UI**: Mobile-optimized interface that works seamlessly on all screen sizes (320px to 1920px+)
+- **Drawing Tools**: Complete toolset with color palette, brush size selector, stroke counter, and visual feedback
+- **Answer/Hint Input**: Modal form system for completing drawings with character validation and UTF-8 support
+- **Navigation System**: Back buttons with confirmation prompts, smooth scene transitions, and proper positioning
+- **Quiz Interface**: Complete structure for viewing drawings, entering guesses, and receiving feedback
+- **Leaderboard Display**: Top 5 scores system with proper formatting and error handling
+- **API Integration**: Client-server communication structure with comprehensive TypeScript types
+- **Game Flow**: Complete navigation between Create Drawing, Play Quiz, and Leaderboard modes
+- **Input Validation**: Character limits, required fields, and user-friendly error messages
+- **Mobile Touch Support**: Touch-optimized drawing with proper event handling
 
 ### 🚧 **In Development**
-- **Drawing Playback System**: Stroke-by-stroke replay functionality
+- **Drawing Playback System**: Stroke-by-stroke replay functionality for quiz mode
 - **Scoring Algorithm**: Base score + time bonus calculation system
 - **Redis Storage**: Data persistence and compression for drawings and scores
 - **Server Endpoints**: Complete API implementation for all game features
 - **Drawing Validation**: Input sanitization and profanity filtering
-- **Mobile Touch Optimization**: Enhanced touch controls and responsiveness
+- **Performance Optimization**: Caching and compression for better scalability
 
 ### 📋 **Planned Features**
 - **Atomic Score Updates**: Concurrent user handling with Redis transactions
-- **Performance Optimization**: Caching and compression for better scalability
 - **Security Features**: XSS prevention and comprehensive input validation
 - **Testing Suite**: Unit, integration, and performance tests
 - **Reddit Integration**: Full Devvit platform integration with user authentication
+- **Advanced Features**: Auto-save, session management, and enhanced error handling
 
 ## Development Setup
 
