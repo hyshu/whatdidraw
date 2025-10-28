@@ -137,7 +137,7 @@ export class Quiz extends Scene {
       })
       .setOrigin(1, 0);
 
-    const buttonY = progressY + 35;
+    const buttonY = progressY + 25;
     this.playPauseButton = this.add
       .text(width / 2, buttonY, 'Play', {
         fontFamily: 'Arial',
@@ -178,31 +178,36 @@ export class Quiz extends Scene {
       top: ${inputY}px;
       transform: translateX(-50%);
       width: 90%;
-      max-width: 400px;
+      max-width: 500px;
       z-index: 100;
     `;
 
     const label = document.createElement('label');
-    label.textContent = 'Your guess:';
-    label.style.cssText = 'display: block; color: white; margin-bottom: 5px; font-family: Arial; font-size: 14px;';
+    label.textContent = 'Enter your answer:';
+    label.style.cssText = 'display: block; color: white; margin-bottom: 8px; font-family: Arial; font-size: 16px;';
+
+    const inputRow = document.createElement('div');
+    inputRow.style.cssText = 'display: flex; align-items: center; gap: 10px;';
 
     this.guessInput = document.createElement('input');
     this.guessInput.type = 'text';
     this.guessInput.maxLength = 50;
-    this.guessInput.placeholder = 'Enter your answer...';
-    this.guessInput.style.cssText = 'width: 100%; padding: 10px; font-size: 16px; border: 2px solid #ddd; border-radius: 5px; box-sizing: border-box; font-family: Arial;';
+    this.guessInput.placeholder = 'Type here...';
+    this.guessInput.style.cssText = 'flex: 1; padding: 10px; font-size: 16px; border: 2px solid #ddd; border-radius: 5px; box-sizing: border-box; font-family: Arial;';
 
     this.submitButton = document.createElement('button');
-    this.submitButton.textContent = 'Submit Guess';
-    this.submitButton.style.cssText = 'width: 100%; padding: 12px; margin-top: 10px; background: #3498db; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; font-family: Arial;';
+    this.submitButton.textContent = 'Submit';
+    this.submitButton.style.cssText = 'padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; font-family: Arial; white-space: nowrap;';
     const submitButton = this.submitButton;
     this.submitButton.onmouseover = () => submitButton.style.background = '#5dade2';
     this.submitButton.onmouseout = () => submitButton.style.background = '#3498db';
     this.submitButton.onclick = () => this.handleGuessSubmit();
 
+    inputRow.appendChild(this.guessInput);
+    inputRow.appendChild(this.submitButton);
+
     this.inputContainer.appendChild(label);
-    this.inputContainer.appendChild(this.guessInput);
-    this.inputContainer.appendChild(this.submitButton);
+    this.inputContainer.appendChild(inputRow);
 
     document.body.appendChild(this.inputContainer);
   }

@@ -176,8 +176,8 @@ interface Score {
 ├─────────────────────────────────────────────┤
 │           [Play/Pause Button]               │
 ├─────────────────────────────────────────────┤
-│ Your guess:[________Answer Input__________] │
-│              [Submit Guess]                 │
+│           Enter your answer:                │
+│         [____Input____] [Submit]            │
 └─────────────────────────────────────────────┘
 ```
 - **Top bar**: Back button (top-left)
@@ -185,8 +185,10 @@ interface Score {
 - **Progress bar**: Stroke progress (e.g., "15/42 strokes") and elapsed time (e.g., "Time: 00:12")
 - **Playback control**: Play/Pause toggle button (centered)
 - **Hint area**: Displayed when hint is available (optional)
-- **Guess input**: Answer input field with real-time validation
-- **Submit button**: Submit guess button
+- **Guess input area**:
+  - Label "Enter your answer:" displayed above the input row
+  - Input field and Submit button arranged horizontally below the label
+  - Submit button positioned to the right of the input field
 
 ### Playback Engine
 - Stroke-by-stroke replay preserving original timing
