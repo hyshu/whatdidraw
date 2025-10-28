@@ -161,6 +161,34 @@ interface Score {
 - Showing stroke count
 - User's rank display if in top 5
 
+#### Layout Structure
+```
+┌─────────────────────────────────────────────┐
+│ Back   Hint: [It has four legs] (optional)  │
+├─────────────────────────────────────────────┤
+│                                             │
+│                                             │
+│              Canvas (360x360)               │
+│           (Playback Display)                │
+│                                             │
+│                                             │
+├─────────────────────────────────────────────┤
+│    Progress: 15/42 strokes  Time: 00:12     │
+├─────────────────────────────────────────────┤
+│           [Play/Pause Button]               │
+├─────────────────────────────────────────────┤
+│ Your guess:[________Answer Input__________] │
+│              [Submit Guess]                 │
+└─────────────────────────────────────────────┘
+```
+- **Top bar**: Back button (top-left)
+- **Center area**: 360×360px playback canvas (strokes drawn sequentially)
+- **Progress bar**: Stroke progress (e.g., "15/42 strokes") and elapsed time (e.g., "Time: 00:12")
+- **Playback control**: Play/Pause toggle button (centered)
+- **Hint area**: Displayed when hint is available (optional)
+- **Guess input**: Answer input field with real-time validation
+- **Submit button**: Submit guess button
+
 ### Playback Engine
 - Stroke-by-stroke replay preserving original timing
 - Progress tracking communicated to Quiz_Interface
