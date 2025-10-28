@@ -25,7 +25,7 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 
 1. WHEN a user accesses drawing mode, THE Drawing_System SHALL provide a 360x360px canvas for drawing
 2. WHILE drawing, THE Drawing_System SHALL capture stroke data including coordinates, color, width, and timestamps
-3. THE Drawing_System SHALL provide drawing tools including pen, eraser, undo, and clear functions
+3. THE Drawing_System SHALL provide drawing tools including pen and undo functions
 4. THE Drawing_System SHALL offer 8 color options (black, red, green, blue, yellow, magenta, cyan, white)
 5. THE Drawing_System SHALL provide 5 brush sizes (1px, 3px, 5px, 8px, 12px)
 6. THE Drawing_System SHALL provide a "Finish" button to complete the drawing and trigger the answer/hint input workflow

@@ -42,15 +42,17 @@ With community-generated content, the game offers unlimited replay value as new 
 ### 🎮 **Getting Started**
 1. **Launch the Game**: Click the "Play" button on the Reddit post to open the game in full-screen mode
 2. **Choose Your Mode**: From the main menu, select either "Create Drawing" or "Play Quiz"
+3. **Navigation**: Use the **Back button** (located in the top-left corner) to return to the previous screen at any time
+   - When drawing with unsaved strokes, you'll be prompted for confirmation before leaving
 
 ### 🖌️ **Creating a Drawing (Create Mode)**
 1. **Start Drawing**: Click "Create Drawing" from the main menu
-2. **Use the Canvas**: Draw your picture using the available tools:
-   - **Color Palette**: Choose from 8 different colors
-   - **Brush Sizes**: Select from 5 different brush sizes
-   - **Pen/Eraser**: Toggle between drawing and erasing
-   - **Clear Canvas**: Start over with a blank canvas
+2. **Use the Canvas**: Draw your picture using the available tools on a 360x360px canvas:
+   - **Color Palette**: Choose from 8 different colors (black, red, green, blue, yellow, magenta, cyan, white)
+   - **Brush Sizes**: Select from 5 different brush sizes (1px, 3px, 5px, 8px, 12px)
+   - **Pen Tool**: Draw on the canvas
    - **Undo**: Remove your last stroke
+   - **Finish Button**: Complete your drawing and proceed to add answer/hint
 3. **Add Details**: 
    - **Answer**: Enter what your drawing represents (1-50 characters, required)
    - **Hint**: Optionally provide a helpful hint (up to 100 characters)
@@ -73,9 +75,14 @@ With community-generated content, the game offers unlimited replay value as new 
    - Return to the main menu
 
 ### 🏆 **Scoring System**
-- **Base Points**: Earn points for correct guesses
-- **Time Bonus**: Get extra points for quick answers
-- **Leaderboard**: Compete with other Reddit users for the top spots
+- **Base Score**: (total strokes - viewed strokes) × 100
+  - Earn more points by guessing earlier in the drawing process
+- **Time Bonus**: max(0, (60 - elapsed seconds) × 10)
+  - Get up to 600 extra points for answering within 60 seconds
+- **Total Score**: Base Score + Time Bonus
+- **Per-Drawing Leaderboards**: Your highest score for each drawing is saved
+  - Top 5 scores are displayed for each drawing
+  - Compete with other Reddit users for the top spots
 
 ### 📊 **Leaderboard**
 - View the top 5 scores from the community

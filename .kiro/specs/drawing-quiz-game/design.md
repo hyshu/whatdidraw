@@ -119,12 +119,13 @@ interface Score {
 
 ### Drawing Canvas
 - 360x360px HTML5 canvas with Phaser.js
-- Tools: pen, eraser, undo, clear
+- Tools: pen, undo
 - Colors: 8 options (black, red, green, blue, yellow, magenta, cyan, white)
 - Brush sizes: 5 options (1px, 3px, 5px, 8px, 12px)
 - "Finish" button to complete drawing and trigger answer/hint input workflow
 - "Finish" button top-right corner
 - "Back" button in top-left corner (smaller than primary UI, no overlap with other elements)
+- Showing stroke count
 - Answer/hint input form displayed after clicking "Finish" button
 - Return to title screen after submitting answer and hint
 - Touch input support with event debouncing (50ms)
@@ -136,7 +137,7 @@ interface Score {
 - Guess input field with real-time validation
 - Score breakdown display (base + time bonus)
 - Top 5 leaderboard per drawing
-- Progress indicator showing stroke count
+- Showing stroke count
 - User's rank display if in top 5
 
 ### Playback Engine

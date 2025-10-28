@@ -54,8 +54,6 @@ The phases progress from:
 - [ ] 1.2 Add drawing tools UI
   - Add color palette (8 colors) with visual buttons
   - Add brush size selector (5 sizes) with preview
-  - Implement pen/eraser mode toggle
-  - Add clear canvas button with confirmation
   - _Requirements: 1.3, 1.4, 1.5_
 
 - [ ] 1.3 Implement stroke capture and undo
@@ -96,8 +94,7 @@ The phases progress from:
 - [ ] 1.5 Test Phase 1 implementation
   - Verify drawing canvas initializes correctly (360x360px)
   - Test mouse and touch drawing functionality
-  - Test all drawing tools (color palette, brush sizes, pen/eraser toggle)
-  - Test clear canvas with confirmation dialog
+  - Test all drawing tools (color palette, brush sizes)
   - Test stroke capture stores correct data (coordinates, color, width)
   - Test undo functionality removes last stroke correctly
   - Test stroke counter updates accurately
