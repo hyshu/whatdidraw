@@ -404,6 +404,15 @@ Home / Main Menu (Title Screen)
 
 ## Error Handling
 
+### Loading Indicators
+- **Loading dialog** displayed during all async operations:
+  - Play Quiz: "Loading quiz..." shown while fetching drawing from server
+  - Submit Guess: "Submitting guess..." shown while sending guess to server
+  - Create Drawing: "Saving drawing..." shown while saving drawing to server
+  - Visual: Spinner animation with message text
+  - z-index: 9999 to appear above all other UI elements
+  - Backdrop: Semi-transparent black (rgba(0, 0, 0, 0.7))
+
 ### Client Errors
 - **Canvas initialization failure**: 
   - Display: "Unable to load drawing canvas. Please refresh the page."

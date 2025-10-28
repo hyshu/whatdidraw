@@ -7,6 +7,7 @@ import {
   sanitizeText,
 } from '../../../shared/utils/validation';
 import { post, ApiError } from '../../utils/api';
+import { showLoading, hideLoading } from '../../utils/loading';
 
 export class Drawing extends Scene {
   private canvas!: Phaser.GameObjects.Graphics;
@@ -481,15 +482,20 @@ export class Drawing extends Scene {
       createdAt: Date.now(),
     };
 
+    showLoading('Saving drawing...');
+
     try {
       const result = await post<SaveDrawingResponse>('/api/drawing', {
         drawing: drawingData,
       });
 
+      hideLoading();
+
       this.hideInputModal();
       this.cleanup();
       this.scene.start('MainMenu');
     } catch (error) {
+      hideLoading();
       console.error('Error saving drawing:', error);
       if (error instanceof ApiError) {
         alert(error.message);

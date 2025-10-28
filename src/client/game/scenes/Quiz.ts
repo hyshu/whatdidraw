@@ -1,6 +1,7 @@
 import { Scene } from 'phaser';
 import { Point, Stroke, GetDrawingResponse, SubmitGuessResponse } from '../../../shared/types/api';
 import { get, post, ApiError } from '../../utils/api';
+import { showLoading, hideLoading } from '../../utils/loading';
 
 interface DrawingData {
   id: string;
@@ -50,10 +51,13 @@ export class Quiz extends Scene {
   async create() {
     this.cameras.main.setBackgroundColor(0x6a4c93);
 
+    showLoading('Loading quiz...');
+
     try {
       const result = await get<GetDrawingResponse>('/api/drawing');
 
       if (!result.drawing) {
+        hideLoading();
         alert('No drawings available. Please create a drawing first.');
         this.scene.start('MainMenu');
         return;
@@ -67,7 +71,10 @@ export class Quiz extends Scene {
       this.createHTMLInput();
 
       this.scale.on('resize', () => this.handleResize());
+
+      hideLoading();
     } catch (error) {
+      hideLoading();
       console.error('Error loading drawing:', error);
       if (error instanceof ApiError) {
         alert(error.message);
@@ -349,6 +356,8 @@ export class Quiz extends Scene {
       this.togglePlayPause();
     }
 
+    showLoading('Submitting guess...');
+
     try {
       const result = await post<SubmitGuessResponse>('/api/guess', {
         guess,
@@ -356,6 +365,8 @@ export class Quiz extends Scene {
         elapsedTime: elapsedSeconds,
         viewedStrokes,
       });
+
+      hideLoading();
 
       this.showScoreDisplay(
         result.correct,
@@ -366,6 +377,7 @@ export class Quiz extends Scene {
         elapsedSeconds
       );
     } catch (error) {
+      hideLoading();
       console.error('Error submitting guess:', error);
       if (error instanceof ApiError) {
         alert(error.message);
