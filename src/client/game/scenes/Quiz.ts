@@ -486,9 +486,6 @@ export class Quiz extends Scene {
   }
 
   private handleBack() {
-    const confirmed = confirm('Are you sure you want to leave the quiz?');
-    if (!confirmed) return;
-
     this.cleanup();
     this.scene.start('MainMenu');
   }

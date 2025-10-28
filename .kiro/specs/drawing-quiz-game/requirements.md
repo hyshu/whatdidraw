@@ -149,4 +149,3 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 5. THE system SHALL provide a "Back" button in the top-left corner of all game screens (drawing, quiz, leaderboard) to return to the previous screen
 6. THE "Back" button SHALL be sized smaller than primary UI elements to avoid visual interference
 7. THE "Back" button SHALL not overlap with any other UI components or interactive elements
-8. WHEN clicking the "Back" button with unsaved drawing strokes, THE system SHALL prompt the user for confirmation before navigating away

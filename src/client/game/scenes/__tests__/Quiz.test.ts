@@ -485,20 +485,13 @@ describe('Phase 2: Quiz Scene and Playback System', () => {
       expect(backButton.y).toBe(15);
     });
 
-    it('should show confirmation when back is clicked', () => {
-      scene['handleBack']();
-      expect(global.confirm).toHaveBeenCalled();
-    });
-
-    it('should navigate to MainMenu when confirmed', () => {
-      vi.mocked(global.confirm).mockReturnValueOnce(true);
+    it('should navigate to MainMenu when back is clicked', () => {
       scene['handleBack']();
       expect(scene.scene.start).toHaveBeenCalledWith('MainMenu');
     });
 
     it('should cleanup DOM elements on back', () => {
       const inputContainer = scene['inputContainer'];
-      vi.mocked(global.confirm).mockReturnValueOnce(true);
       scene['handleBack']();
       expect(inputContainer?.parentElement).toBeNull();
     });

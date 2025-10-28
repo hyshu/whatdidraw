@@ -75,8 +75,7 @@ The phases progress from:
   - Size back button smaller than primary UI elements to avoid interference
   - Ensure back button doesn't overlap with drawing tools or canvas
   - Position back button with appropriate padding (e.g., 10-15px from edges)
-  - Add confirmation prompt if unsaved strokes exist when clicking back
-  - _Requirements: 10.5, 10.6, 10.7, 10.8_
+  - _Requirements: 10.5, 10.6, 10.7_
 
 - [x] 1.4.2 Implement responsive layout for mobile and desktop
   - Design layout to prevent horizontal scrolling on all screen sizes
@@ -105,7 +104,6 @@ The phases progress from:
   - Test "Back" button appears in top-left corner
   - Verify back button is smaller than primary UI elements
   - Test back button doesn't overlap with drawing tools or canvas
-  - Test confirmation prompt when clicking back with unsaved strokes
   - Test back button returns to title screen
   - Test layout on mobile screen widths (320px, 375px, 414px, 768px)
   - Test layout on desktop screen widths (1024px, 1440px, 1920px)

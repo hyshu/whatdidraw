@@ -410,45 +410,10 @@ describe('Phase 1: Drawing Canvas System', () => {
       expect(backFontSize).toBeLessThan(finishFontSize);
     });
 
-    it('should show confirmation when back is clicked with unsaved strokes', () => {
-      scene['strokes'] = [
-        { points: [{ x: 10, y: 20 }], color: '#000000', width: 3, timestamp: 0 },
-      ];
-      (global.confirm as any).mockReturnValue(false);
-
-      scene['handleBack']();
-
-      expect(global.confirm).toHaveBeenCalledWith('You have unsaved strokes. Are you sure you want to go back?');
-    });
-
-    it('should not show confirmation when back is clicked with no strokes', () => {
-      scene['strokes'] = [];
-
-      scene['handleBack']();
-
-      expect(global.confirm).not.toHaveBeenCalled();
-    });
-
-    it('should return to MainMenu when confirmed', () => {
-      scene['strokes'] = [
-        { points: [{ x: 10, y: 20 }], color: '#000000', width: 3, timestamp: 0 },
-      ];
-      (global.confirm as any).mockReturnValue(true);
-
+    it('should return to MainMenu when back is clicked', () => {
       scene['handleBack']();
 
       expect(scene.scene.start).toHaveBeenCalledWith('MainMenu');
-    });
-
-    it('should not navigate when confirmation is cancelled', () => {
-      scene['strokes'] = [
-        { points: [{ x: 10, y: 20 }], color: '#000000', width: 3, timestamp: 0 },
-      ];
-      (global.confirm as any).mockReturnValue(false);
-
-      scene['handleBack']();
-
-      expect(scene.scene.start).not.toHaveBeenCalled();
     });
   });
 

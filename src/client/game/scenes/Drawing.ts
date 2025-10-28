@@ -297,10 +297,6 @@ export class Drawing extends Scene {
   }
 
   private handleBack() {
-    if (this.strokes.length > 0) {
-      const confirmed = confirm('You have unsaved strokes. Are you sure you want to go back?');
-      if (!confirmed) return;
-    }
     this.cleanup();
     this.scene.start('MainMenu');
   }

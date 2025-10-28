@@ -385,7 +385,7 @@ Home / Main Menu (Title Screen)
  ├─ Create Drawing
  │   ├─ Canvas (active drawing)
  │   ├─ Finish → Answer/Hint Input Form → Return to Title Screen
- │   └─ Back button (top-left) → Title Screen (with confirmation if unsaved)
+ │   └─ Back button (top-left) → Title Screen
  ├─ Play Quiz
  │   ├─ Random Drawing Selection
  │   ├─ Playback & Guess
@@ -401,7 +401,6 @@ Home / Main Menu (Title Screen)
 - "Back" button available in all modes, positioned in top-left corner
 - Back button sized smaller than primary UI elements to avoid visual clutter
 - Back button positioned with padding (10-15px from edges) to prevent overlap
-- Confirmation prompt when clicking back with unsaved drawing strokes
 - Main menu (title screen) accessible from all scenes via back button
 
 ## Error Handling
