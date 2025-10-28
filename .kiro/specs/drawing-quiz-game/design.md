@@ -377,6 +377,48 @@ For attempt in 1..3:
   - `LeaderboardScene`: Rankings display per drawing
 - **Transitions**: Managed by Phaser scene stack
 
+### Scene Lifecycle Management
+Proper lifecycle management is critical to prevent state persistence between scene activations.
+
+- **init()**: Called every time a scene starts (before create())
+  - **MUST** reset all instance properties to prevent state persistence
+  - **MUST** clear graphics objects if they exist (e.g., `this.canvas.clear()`)
+  - **MUST** reset DOM element references to null
+  - Example properties to reset: drawing data, stroke indices, timer states, playback states
+
+- **create()**: Called after init() to create new game objects
+  - Initializes UI elements, canvas, event listeners
+  - Fetches fresh data from API (e.g., new random drawing for Quiz)
+
+- **destroy()**: Called when scene is removed from game
+  - Clean up DOM elements and event listeners
+  - Called automatically by Phaser when switching scenes
+
+**Critical Issue Prevented**: Without `init()`, Phaser scene instances persist in memory between activations, causing previous state (drawings, progress, timers) to remain when returning to a scene.
+
+**Example: Quiz scene state reset**
+```typescript
+init(): void {
+  // Reset all state variables
+  this.drawingData = null;
+  this.completedStrokes = [];
+  this.currentStrokeIndex = 0;
+  this.currentPointIndex = 0;
+  this.isPlaying = false;
+  this.playbackStartTime = 0;
+  this.pausedTime = 0;
+
+  // Clear graphics if exists
+  if (this.canvas) {
+    this.canvas.clear();
+  }
+
+  // Reset DOM element references
+  this.guessInput = null;
+  this.inputContainer = null;
+}
+```
+
 ## Navigation
 
 ### Mode Structure

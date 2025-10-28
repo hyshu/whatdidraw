@@ -48,6 +48,31 @@ export class Quiz extends Scene {
     super('Quiz');
   }
 
+  init(): void {
+    // Reset all state variables to prevent state persistence between quiz sessions
+    this.drawingData = null;
+    this.completedStrokes = [];
+    this.currentStroke = null;
+    this.currentStrokeIndex = 0;
+    this.currentPointIndex = 0;
+    this.isPlaying = false;
+    this.playbackStartTime = 0;
+    this.pausedTime = 0;
+    this.guessStartTime = 0;
+    this.pointsPerFrame = 2;
+
+    // Reset DOM element references
+    this.guessInput = null;
+    this.submitButton = null;
+    this.inputContainer = null;
+    this.scoreDisplay = null;
+
+    // Clear canvas graphics if it exists
+    if (this.canvas) {
+      this.canvas.clear();
+    }
+  }
+
   async create() {
     this.cameras.main.setBackgroundColor(0x6a4c93);
 
