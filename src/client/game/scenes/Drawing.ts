@@ -453,12 +453,14 @@ export class Drawing extends Scene {
   }
 
   private saveDrawing(answer: string, hint: string) {
-    console.log('Saving drawing:', {
+    const quizData = {
       answer,
       hint: hint || undefined,
       strokes: this.strokes,
       totalStrokes: this.strokes.length,
-    });
+    };
+
+    localStorage.setItem('currentQuiz', JSON.stringify(quizData));
 
     this.hideInputModal();
     this.cleanup();

@@ -120,15 +120,15 @@ The phases progress from:
 
 ### Phase 2: Playback System
 
-- [ ] 2. Create playback and quiz system
-- [ ] 2.1 Implement basic playback viewer
+- [x] 2. Create playback and quiz system
+- [x] 2.1 Implement basic playback viewer
   - Create quiz scene with canvas display
   - Load and replay hardcoded stroke data
   - Add play/pause buttons
   - Show progress bar
   - _Requirements: 2.1, 2.3_
 
-- [ ] 2.1.1 Implement stroke timing system
+- [x] 2.1.1 Implement stroke timing system
   - Extract timestamp data from each stroke
   - Calculate playback delays between consecutive strokes
   - Use requestAnimationFrame for smooth rendering
@@ -137,7 +137,7 @@ The phases progress from:
   - Communicate stroke progress to Quiz_Interface in real-time
   - _Requirements: 2.1, 8.5_
 
-- [ ] 2.2 Add quiz interaction
+- [x] 2.2 Add quiz interaction
   - Add guess input field below canvas
   - Display hint if available (from drawing metadata)
   - Implement mock answer checking (hardcoded answers)
@@ -145,14 +145,14 @@ The phases progress from:
   - Display answer after incorrect guess or completion
   - _Requirements: 2.2, 2.4, 2.5_
 
-- [ ] 2.3 Add score display
+- [x] 2.3 Add score display
   - Show score breakdown (base points / time bonus)
   - Display total score prominently
   - Calculate and show elapsed time
   - Display viewed stroke count
   - _Requirements: 3.3, 4.3_
 
-- [ ] 2.4 Implement leaderboard UI
+- [x] 2.4 Implement leaderboard UI
   - Create LeaderboardScene in Phaser
   - Display top 5 scores per drawing with mock data
   - Show score breakdown for each entry (base + time bonus)

@@ -1,36 +1,42 @@
 # What Did I Draw? - Interactive Drawing Quiz Game
 
-An innovative drawing guessing game built for Reddit using Devvit and Phaser.js. Players can create drawings for others to guess or test their skills by guessing what others have drawn.
+An innovative drawing guessing game built for Reddit using Devvit and Phaser.js. Players create drawings with answers and hints, then watch as others try to guess what was drawn by viewing the drawing process replay in real-time.
 
 ## What This Game Is
 
-**What Did I Draw?** is a creative multiplayer guessing game where the Reddit community creates and solves drawing puzzles together. The game combines artistic expression with puzzle-solving in a social environment.
+**What Did I Draw?** is a unique drawing quiz game where creativity meets competition. Players draw pictures with digital tools, set answers and hints, then other players watch the drawing being created stroke-by-stroke and try to guess what it represents. The game combines artistic expression with puzzle-solving in an engaging social environment.
 
 ### Core Gameplay
-- **Create Mode**: Draw something on a digital canvas (360×360px) with professional drawing tools including 8 colors, 5 brush sizes, and undo functionality
-- **Quiz Mode**: View drawings created by other players and try to guess what they drew based on hints and visual clues
-- **Scoring System**: Earn points based on correct guesses with competitive scoring
-- **Leaderboards**: Compete with other Reddit users for the highest scores
+- **Create Mode**: Draw on a 360×360px digital canvas with professional tools (8 colors, 5 brush sizes, undo) and set answer/hint
+- **Quiz Mode**: Watch drawings being created in real-time playback and guess what they represent
+- **Scoring System**: Earn points based on speed and accuracy - fewer strokes viewed and faster guesses earn higher scores
+- **Leaderboards**: Compete with other Reddit users for top scores on individual drawings
 
 ## What Makes This Game Innovative
 
+### 🎬 **Real-Time Drawing Playback**
+Unlike static image guessing games, players watch drawings being created stroke-by-stroke in the exact order and timing they were originally drawn. This creates a unique "time-lapse art" experience where the drawing process itself becomes part of the puzzle.
+
+### 🎯 **Strategic Timing System**
+Players can guess at any point during the playback, creating strategic decisions: guess early with limited information for maximum points, or wait to see more strokes for a safer but lower-scoring guess.
+
+### 🏆 **Per-Drawing Competition**
+Each drawing has its own leaderboard showing the top 5 scores, creating focused competition around individual artworks rather than just global rankings. This encourages players to master specific drawings and compete directly.
+
+### 🧮 **Sophisticated Scoring Algorithm**
+Points are calculated using a dual-factor system:
+- **Base Score**: (Total strokes - Viewed strokes) × 100 (rewards guessing with minimal information)
+- **Time Bonus**: max(0, (60 - elapsed seconds) × 10) (rewards quick thinking)
+- Only the highest score per user per drawing is kept, encouraging repeated attempts to improve
+
+### 📱 **Mobile-First Design**
+Built with responsive layouts that prevent UI overlap and horizontal scrolling on any screen size (320px to 1920px+). Touch-optimized drawing with 50ms debouncing ensures smooth mobile experience.
+
 ### 🎨 **Community-Driven Content**
-Unlike traditional games with pre-made content, every drawing is created by real Reddit users, ensuring fresh, unique, and culturally relevant puzzles that reflect the community's creativity and humor.
+Every drawing is created by real Reddit users with their own artistic style, cultural references, and creative interpretations, ensuring endless variety and community-relevant content.
 
-### 🧠 **Adaptive Difficulty** 
-The challenge level naturally varies based on the drawing skill and creativity of the community - from simple doodles perfect for beginners to complex artistic masterpieces that challenge even experienced players.
-
-### 🏆 **Social Competition**
-Integrated leaderboards create friendly competition within Reddit communities, encouraging both artistic improvement and puzzle-solving skills while fostering community engagement.
-
-### 📱 **Cross-Platform Accessibility**
-Built with responsive design principles, the game works seamlessly on both desktop and mobile devices, allowing Reddit users to play anywhere, anytime with touch-optimized controls.
-
-### 🔄 **Endless Replayability**
-With community-generated content, the game offers unlimited replay value as new drawings are constantly being added by players, ensuring the experience never gets stale.
-
-### 🎯 **Intelligent Scoring System**
-The scoring algorithm rewards correct guesses, creating competitive gameplay that encourages both quick thinking and careful observation.
+### 🔄 **Seamless Mode Switching**
+Players can fluidly switch between creating drawings and playing quizzes with persistent state management, auto-save functionality, and intuitive navigation that maintains context.
 
 ## Technology Stack
 
@@ -91,55 +97,89 @@ The scoring algorithm rewards correct guesses, creating competitive gameplay tha
 
 #### **Quiz Interface**
 1. **Start Guessing**: Click "Play Quiz" from the main menu
-2. **Game Layout**: Clean, focused interface for optimal guessing:
-   - **Title**: "What Did I Draw?" at the top
-   - **Drawing Area**: Large central area where drawings appear (currently shows placeholder)
-   - **Hint Display**: Shows any hint provided by the artist
-   - **Status Text**: Provides game feedback and instructions
-   - **Guess Input**: Text field for entering your answer
-   - **Submit Button**: Green button to submit your guess
-   - **Back to Menu**: Return to main menu anytime
+2. **Game Layout**: Optimized interface for watching and guessing:
+   - **Back Button**: Top-left corner for easy navigation
+   - **Hint Display**: Top-right shows any hint provided by the artist
+   - **Drawing Canvas**: Central 360×360px area where stroke playback occurs
+   - **Progress Tracker**: Shows "Progress: X/Y strokes" and elapsed time
+   - **Playback Controls**: Play/Pause button to control drawing replay
+   - **Guess Input**: Text field for entering your answer (appears below canvas)
+   - **Submit Button**: Blue button to submit your guess
+
+#### **The Playback Experience**
+1. **Drawing Loads**: A drawing created by another player loads with all stroke data
+2. **Watch the Creation**: Click "Play" to see the drawing being created stroke-by-stroke
+   - Strokes appear in the exact order and timing they were originally drawn
+   - Progress counter shows how many strokes have been revealed
+   - Timer tracks how long you've been watching
+3. **Strategic Guessing**: You can guess at any point during playback:
+   - **Early Guess**: Higher potential score but less visual information
+   - **Wait and See**: More strokes revealed but lower scoring potential
+   - **Pause Anytime**: Use pause button to study the current state
 
 #### **Making Your Guess**
-1. **View the Drawing**: A drawing created by another player loads automatically
-2. **Read the Hint**: Check for any helpful clues provided by the artist
-3. **Enter Your Guess**: 
-   - Type your answer in the input field
-   - Press Enter or click "Submit Guess"
-   - No character limits on guesses
-4. **Get Instant Feedback**:
-   - **Correct**: Green success message with your score and transition to results
-   - **Incorrect**: Red message showing the correct answer, then loads new drawing
-5. **Continue Playing**: After each guess, a new drawing loads automatically
+1. **Enter Your Answer**: Type in the guess input field (up to 50 characters)
+2. **Submit**: Click "Submit Guess" or press Enter
+3. **Instant Results**: Get immediate feedback with detailed scoring:
+   - **Correct Guess**: 
+     - Shows your total score with breakdown
+     - Base Score: (Unseen strokes × 100) points
+     - Time Bonus: (Seconds under 60 × 10) points
+     - Options to "Play Again" or return to "Main Menu"
+   - **Incorrect Guess**: Shows the correct answer with options to continue
 
-#### **Quiz Features**
-- **Automatic Loading**: New drawings load seamlessly after each attempt
-- **Immediate Feedback**: Know instantly if your guess was correct
-- **Score Display**: See your points immediately after correct guesses
-- **Hint System**: Optional clues help guide your thinking
-- **Mobile Optimized**: Touch-friendly interface with proper input handling
+#### **Advanced Quiz Features**
+- **Real-Time Playback**: Drawings replay with original timing preserved using requestAnimationFrame
+- **Stroke Progress Tracking**: Precise tracking of partial stroke completion for accurate scoring
+- **Pause/Resume**: Full control over playback speed and timing
+- **Score Breakdown**: Detailed explanation of how points were calculated
+- **Replay Option**: Restart the same drawing to try for a better score
+- **Mobile Optimized**: Touch-friendly controls with responsive layout
 
 ### 🏆 **Scoring & Leaderboards**
 
 #### **How Scoring Works**
-The game tracks your performance and awards points for correct guesses:
+The game uses a sophisticated dual-factor scoring system that rewards both efficiency and speed:
 
-- **Correct Guesses**: Earn points for identifying drawings correctly
-- **Score Tracking**: Your score is displayed immediately after correct answers
-- **Competition**: Compete with other Reddit users for top positions
+**Base Score Calculation:**
+- Formula: `(Total Strokes - Viewed Strokes) × 100`
+- Rewards guessing with minimal visual information
+- Example: If a drawing has 20 strokes and you guess after seeing 8, you get (20-8) × 100 = 1,200 base points
+
+**Time Bonus Calculation:**
+- Formula: `max(0, (60 - Elapsed Seconds) × 10)`
+- Rewards quick thinking and recognition
+- Example: If you guess in 25 seconds, you get (60-25) × 10 = 350 bonus points
+
+**Total Score:**
+- Only awarded for correct guesses
+- Total = Base Score + Time Bonus
+- Example: 1,200 + 350 = 1,550 total points
+
+**Scoring Features:**
+- **Partial Stroke Tracking**: Even partial completion of strokes affects scoring
+- **Best Score Only**: Only your highest score per drawing is kept
+- **Immediate Feedback**: See detailed score breakdown after each correct guess
+- **Strategic Depth**: Balance between waiting for more information vs. time penalty
 
 #### **Leaderboard System**
-1. **Access**: Click "Leaderboard" from main menu or view after completing a quiz
-2. **Top 5 Display**: Shows the highest scores from the community
-3. **Username Display**: See which Reddit users achieved top scores
-4. **Score Values**: Full point totals displayed for comparison
-5. **Real-Time Updates**: Leaderboards update with new high scores
+1. **Per-Drawing Competition**: Each drawing has its own top 5 leaderboard
+2. **Access Methods**: 
+   - Click "Leaderboard" from main menu (shows mock data)
+   - Automatic display after quiz completion
+3. **Ranking Display**:
+   - **Position**: #1 through #5 with clear ranking
+   - **Username**: Reddit usernames of top players
+   - **Total Score**: Final point total prominently displayed
+   - **Score Breakdown**: Shows base points and time bonus separately
+4. **User Rank**: Your position displayed if you're in the top 5
 
-#### **Leaderboard Features**
-- **Community Rankings**: See how you compare to other players
-- **Score History**: Track top performers in the community
-- **Friendly Competition**: Encourages improvement and engagement
-- **Easy Access**: Available from main menu or after quiz completion
+#### **Competitive Features**
+- **Individual Drawing Focus**: Compete specifically on drawings you find interesting
+- **Score Improvement**: Replay drawings to beat your previous best
+- **Community Recognition**: See and be seen by other Reddit users
+- **Detailed Analytics**: Understand exactly how scores are calculated
+- **Fair Competition**: Same drawing, same rules for all players
 
 ### 💡 **Pro Tips for Success**
 
@@ -150,10 +190,12 @@ The game tracks your performance and awards points for correct guesses:
 - **Artistic Style**: Your unique style makes drawings more interesting
 
 #### **For Quiz Players**
-- **Look for Key Details**: Focus on distinctive features and shapes
-- **Use Hints Wisely**: Combine visual clues with provided hints
-- **Trust Your Instincts**: First impressions are often correct
-- **Learn from Mistakes**: Incorrect guesses teach you about other players' styles
+- **Strategic Timing**: Decide when to guess based on risk vs. reward
+- **Watch the Process**: The order of strokes often reveals the artist's intent
+- **Use Hints Wisely**: Combine visual clues with provided hints for better guesses
+- **Early Recognition**: Train yourself to identify subjects with minimal strokes
+- **Pause and Study**: Use the pause button to analyze complex drawings
+- **Learn Patterns**: Different artists have different drawing approaches
 
 #### **Community Engagement**
 - **Participate Regularly**: More drawings mean more variety and fun

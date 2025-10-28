@@ -163,7 +163,7 @@ export class MainMenu extends Scene {
         .on('pointerover', () => this.playButton!.setStyle({ backgroundColor: '#2ecc71' }))
         .on('pointerout', () => this.playButton!.setStyle({ backgroundColor: '#27ae60' }))
         .on('pointerdown', () => {
-          this.scene.start('Game');
+          this.scene.start('Quiz');
         });
 
       this.tweens.add({
@@ -237,7 +237,7 @@ export class MainMenu extends Scene {
         .on('pointerover', () => this.leaderboardButton!.setStyle({ backgroundColor: '#a569bd' }))
         .on('pointerout', () => this.leaderboardButton!.setStyle({ backgroundColor: '#9b59b6' }))
         .on('pointerdown', () => {
-          this.scene.start('GameOver', { fromMenu: true });
+          this.scene.start('Leaderboard');
         });
 
       this.tweens.add({
