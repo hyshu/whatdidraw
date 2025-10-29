@@ -140,14 +140,36 @@ router.post<{}, SubmitGuessResponse | { status: string; message: string }, { gue
       let baseScore = 0;
       let timeBonus = 0;
       let totalScore = 0;
+      let message: string | undefined;
 
-      if (correct) {
+      const username = await getUsernameFromId(context.userId || 'anonymous');
+
+      // Check 1: Self-made quiz
+      if (drawing.createdBy === username) {
+        totalScore = 0;
+        baseScore = 0;
+        timeBonus = 0;
+        message = 'This quiz is selfmade, right? 🤔';
+      }
+      // Check 2: Answered too quickly (cheating detection)
+      else if (correct && (viewedStrokes < drawing.totalStrokes * 0.1 || elapsedTime < 3)) {
+        totalScore = 0;
+        baseScore = 0;
+        timeBonus = 0;
+        message = 'Are you cheating? 🧐';
+      }
+      // Check 3: Incorrect answer (already 0)
+      else if (!correct) {
+        totalScore = 0;
+        baseScore = 0;
+        timeBonus = 0;
+      }
+      // Normal scoring for correct answers
+      else if (correct) {
         const totalStrokes = drawing.totalStrokes;
         baseScore = (totalStrokes - viewedStrokes) * 100;
         timeBonus = Math.max(0, (60 - elapsedTime) * 10);
         totalScore = baseScore + timeBonus;
-
-        const username = await getUsernameFromId(context.userId || 'anonymous');
 
         const subredditPost = await storage.getSubredditPost(drawingId);
         const subredditName = subredditPost?.subredditName;
@@ -171,6 +193,7 @@ router.post<{}, SubmitGuessResponse | { status: string; message: string }, { gue
         score: totalScore,
         baseScore,
         timeBonus,
+        message,
       });
     } catch (error) {
       console.error('Error submitting guess:', error);

@@ -456,7 +456,8 @@ export class Quiz extends Scene {
         result.baseScore,
         result.timeBonus,
         viewedStrokes,
-        elapsedSeconds
+        elapsedSeconds,
+        result.message
       );
     } catch (error) {
       hideLoading();
@@ -469,7 +470,7 @@ export class Quiz extends Scene {
     }
   }
 
-  private showScoreDisplay(correct: boolean, totalScore: number, baseScore: number, timeBonus: number, viewedStrokes: number, elapsedSeconds: number) {
+  private showScoreDisplay(correct: boolean, totalScore: number, baseScore: number, timeBonus: number, viewedStrokes: number, elapsedSeconds: number, message?: string) {
     if (this.inputContainer) {
       this.inputContainer.remove();
     }
@@ -491,14 +492,20 @@ export class Quiz extends Scene {
     `;
 
     const title = document.createElement('h2');
-    title.textContent = correct ? 'Correct!' : 'Incorrect';
-    title.style.cssText = `margin: 0 0 20px 0; color: ${correct ? '#27ae60' : '#e74c3c'}; font-size: 28px; text-align: center;`;
+    // Display special message instead of "Correct!" if present
+    if (message) {
+      title.textContent = message;
+      title.style.cssText = 'margin: 0 0 20px 0; color: #e67e22; font-size: 24px; text-align: center;';
+    } else {
+      title.textContent = correct ? 'Correct!' : 'Incorrect';
+      title.style.cssText = `margin: 0 0 20px 0; color: ${correct ? '#27ae60' : '#e74c3c'}; font-size: 28px; text-align: center;`;
+    }
 
     const answerDiv = document.createElement('div');
     answerDiv.textContent = `Answer: ${this.drawingData!.answer}`;
     answerDiv.style.cssText = 'margin-bottom: 20px; font-size: 18px; color: #333; text-align: center; font-weight: bold;';
 
-    if (correct) {
+    if (correct && !message) {
       const unseenStrokes = this.drawingData!.totalStrokes - viewedStrokes;
       const scoreBreakdown = document.createElement('div');
       scoreBreakdown.style.cssText = 'margin-bottom: 20px; color: #555; line-height: 1.6;';

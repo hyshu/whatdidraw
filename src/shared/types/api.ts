@@ -53,6 +53,7 @@ export type SubmitGuessResponse = {
   score: number;
   baseScore: number;
   timeBonus: number;
+  message?: string;
 };
 
 export type GetLeaderboardResponse = {
