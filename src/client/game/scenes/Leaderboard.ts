@@ -8,6 +8,7 @@ interface ScoreEntry {
   baseScore: number;
   timeBonus: number;
   submittedAt: number;
+  avatarUrl?: string;
 }
 
 export class Leaderboard extends Scene {
@@ -71,13 +72,19 @@ export class Leaderboard extends Scene {
     try {
       const result = await get<GetLeaderboardResponse>(`/api/leaderboard/${this.drawingId}`);
 
-      const scores: ScoreEntry[] = result.scores.map((s) => ({
-        username: s.username,
-        score: s.score,
-        baseScore: s.baseScore,
-        timeBonus: s.timeBonus,
-        submittedAt: s.timestamp,
-      }));
+      const scores: ScoreEntry[] = result.scores.map((s) => {
+        const entry: ScoreEntry = {
+          username: s.username,
+          score: s.score,
+          baseScore: s.baseScore,
+          timeBonus: s.timeBonus,
+          submittedAt: s.timestamp,
+        };
+        if (s.avatarUrl) {
+          entry.avatarUrl = s.avatarUrl;
+        }
+        return entry;
+      });
 
       this.createLeaderboardHTML(scores);
     } catch (error) {
@@ -122,18 +129,56 @@ export class Leaderboard extends Scene {
         `;
 
         const leftDiv = document.createElement('div');
-        leftDiv.style.cssText = 'flex: 1;';
+        leftDiv.style.cssText = 'flex: 1; display: flex; align-items: center;';
+
+        const avatarContainer = document.createElement('div');
+        avatarContainer.style.cssText = `
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          margin-right: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        `;
+
+        if (score.avatarUrl) {
+          const avatar = document.createElement('img');
+          avatar.src = score.avatarUrl;
+          avatar.alt = score.username;
+          avatar.style.cssText = 'width: 100%; height: 100%; border-radius: 50%; object-fit: cover;';
+          avatar.onerror = () => {
+            avatarContainer.innerHTML = '';
+            avatarContainer.style.backgroundColor = '#3498db';
+            const initial = document.createElement('span');
+            initial.textContent = (score.username && score.username[0]) ? score.username[0].toUpperCase() : '?';
+            initial.style.cssText = 'color: white; font-weight: bold; font-size: 18px;';
+            avatarContainer.appendChild(initial);
+          };
+          avatarContainer.appendChild(avatar);
+        } else {
+          avatarContainer.style.backgroundColor = '#3498db';
+          const initial = document.createElement('span');
+          initial.textContent = (score.username && score.username[0]) ? score.username[0].toUpperCase() : '?';
+          initial.style.cssText = 'color: white; font-weight: bold; font-size: 18px;';
+          avatarContainer.appendChild(initial);
+        }
+
+        const textContainer = document.createElement('div');
 
         const rankSpan = document.createElement('span');
         rankSpan.textContent = `#${index + 1} `;
         rankSpan.style.cssText = 'font-weight: bold; font-size: 20px; color: #3498db; margin-right: 10px;';
 
         const usernameSpan = document.createElement('span');
-        usernameSpan.textContent = score.username;
+        usernameSpan.textContent = `u/${score.username}`;
         usernameSpan.style.cssText = 'font-size: 18px; color: #333;';
 
-        leftDiv.appendChild(rankSpan);
-        leftDiv.appendChild(usernameSpan);
+        textContainer.appendChild(rankSpan);
+        textContainer.appendChild(usernameSpan);
+        leftDiv.appendChild(avatarContainer);
+        leftDiv.appendChild(textContainer);
 
         const rightDiv = document.createElement('div');
         rightDiv.style.cssText = 'text-align: right;';

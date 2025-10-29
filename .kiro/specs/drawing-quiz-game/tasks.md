@@ -459,7 +459,7 @@ The phases progress from:
 ### Phase 7: User Profile, Quiz History, and Global Leaderboard
 
 - [ ] 7. Enhance leaderboard with Reddit user profiles, quiz history, and global rankings
-- [ ] 7.1 Add Reddit user profile display to leaderboards
+- [x] 7.1 Add Reddit user profile display to leaderboards
   - Fetch Reddit user avatar/icon from Reddit API
   - Display user avatar (32x32px or 40x40px) next to username in leaderboards
   - Format username with Reddit style (u/username)

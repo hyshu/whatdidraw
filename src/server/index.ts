@@ -5,12 +5,14 @@ import {
   SubmitGuessResponse,
   GetLeaderboardResponse,
   SaveDrawingResponse,
-  Drawing
+  Drawing,
+  UserProfile
 } from '../shared/types/api';
 import { redis, createServer, context } from '@devvit/web/server';
 import { createPost } from './core/post';
 import { RedisStorage } from './storage/redis';
 import { validateDrawing, sanitizeText } from '../shared/utils/validation';
+import { getUserProfile, getUserProfiles } from './handlers/userProfile';
 
 const storage = new RedisStorage(redis);
 
@@ -180,13 +182,30 @@ router.get<{ id: string }, GetLeaderboardResponse | { status: string; message: s
 
       const topScores = await storage.getTopScores(id, 5);
 
-      const scoresWithUsernames = topScores.map(score => ({
-        username: score.userId,
-        score: score.score,
-        baseScore: score.baseScore,
-        timeBonus: score.timeBonus,
-        timestamp: score.submittedAt,
-      }));
+      const userIds = topScores.map(score => score.userId);
+      const profiles = await getUserProfiles(userIds);
+
+      const scoresWithUsernames = topScores.map(score => {
+        const profile = profiles.get(score.userId);
+        const entry: {
+          username: string;
+          score: number;
+          baseScore: number;
+          timeBonus: number;
+          timestamp: number;
+          avatarUrl?: string;
+        } = {
+          username: score.userId,
+          score: score.score,
+          baseScore: score.baseScore,
+          timeBonus: score.timeBonus,
+          timestamp: score.submittedAt,
+        };
+        if (profile?.avatarUrl) {
+          entry.avatarUrl = profile.avatarUrl;
+        }
+        return entry;
+      });
 
       res.json({
         type: 'getLeaderboard',
@@ -286,6 +305,33 @@ router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
     });
   }
 });
+
+router.get<{ userId: string }, UserProfile | { status: string; message: string }>(
+  '/api/user/:userId/profile',
+  async (req, res): Promise<void> => {
+    try {
+      const { userId } = req.params;
+
+      if (!userId) {
+        res.status(400).json({
+          status: 'error',
+          message: 'User ID is required'
+        });
+        return;
+      }
+
+      const profile = await getUserProfile(userId);
+
+      res.json(profile);
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      res.status(400).json({
+        status: 'error',
+        message: 'Failed to get user profile'
+      });
+    }
+  }
+);
 
 router.post('/internal/init-redis', async (_req, res): Promise<void> => {
   try {

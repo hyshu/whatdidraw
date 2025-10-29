@@ -60,6 +60,7 @@ export type GetLeaderboardResponse = {
     baseScore: number;
     timeBonus: number;
     timestamp: number;
+    avatarUrl?: string;
   }>;
 };
 
@@ -68,3 +69,9 @@ export type SaveDrawingResponse = {
   drawingId: string;
   success: boolean;
 };
+
+export interface UserProfile {
+  userId: string;
+  avatarUrl?: string;
+  displayName: string;
+}
