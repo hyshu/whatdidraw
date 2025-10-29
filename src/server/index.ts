@@ -676,6 +676,7 @@ router.post('/internal/init-redis', async (_req, res): Promise<void> => {
     console.log('Starting Redis initialization...');
 
     let deletedCount = 0;
+    const subredditNames = new Set<string>();
 
     // Get all drawing IDs from the sorted set
     const drawingList = await redis.zRange('drawings:list', 0, -1, { by: 'rank' });
@@ -688,6 +689,16 @@ router.post('/internal/init-redis', async (_req, res): Promise<void> => {
       await redis.del(`drawings:${drawingId}`);
       await redis.del(`drawings:meta:${drawingId}`);
       deletedCount += 2;
+
+      // Get subreddit name from post info before deleting
+      const postData = await redis.hGetAll(`drawing:${drawingId}:post`);
+      if (postData && postData.subredditName) {
+        subredditNames.add(postData.subredditName as string);
+      }
+
+      // Delete post info
+      await redis.del(`drawing:${drawingId}:post`);
+      deletedCount++;
 
       // Get all scores for this drawing from leaderboard
       const leaderboard = await redis.zRange(`leaderboard:${drawingId}`, 0, -1, { by: 'rank' });
@@ -711,7 +722,52 @@ router.post('/internal/init-redis', async (_req, res): Promise<void> => {
     await redis.set('drawings:id:counter', '0');
     deletedCount++;
 
-    console.log(`Redis initialized successfully. Cleaned ${drawingIds.length} drawings and deleted ${deletedCount} keys.`);
+    // Get all user IDs from global leaderboard
+    const globalLeaderboard = await redis.zRange('global:leaderboard', 0, -1, { by: 'rank' });
+    const allUserIds = globalLeaderboard?.map(item => item.member) || [];
+
+    console.log(`Found ${allUserIds.length} users to clean up`);
+
+    // Delete all user-related keys (My History and player stats)
+    for (const userId of allUserIds) {
+      await redis.del(`user:${userId}:quiz-history`);
+      await redis.del(`player:${userId}:stats`);
+      deletedCount += 2;
+    }
+
+    // Delete global leaderboard
+    await redis.del('global:leaderboard');
+    deletedCount++;
+
+    console.log(`Found ${subredditNames.size} subreddits to clean up`);
+
+    // Delete all subreddit-related keys
+    for (const subredditName of subredditNames) {
+      // Get all user IDs from subreddit leaderboard
+      const subredditLeaderboard = await redis.zRange(`subreddit:${subredditName}:leaderboard`, 0, -1, { by: 'rank' });
+      const subredditUserIds = subredditLeaderboard?.map(item => item.member) || [];
+
+      // Delete subreddit player stats for each user
+      for (const userId of subredditUserIds) {
+        await redis.del(`subreddit:${subredditName}:player:${userId}`);
+        deletedCount++;
+      }
+
+      // Delete subreddit leaderboard and quizzes
+      await redis.del(`subreddit:${subredditName}:leaderboard`);
+      await redis.del(`subreddit:${subredditName}:quizzes`);
+      deletedCount += 2;
+
+      // Delete subreddit ranking cache
+      await redis.del(`cache:subreddit:${subredditName}:ranking:50`);
+      deletedCount++;
+    }
+
+    // Delete global leaderboard cache
+    await redis.del(`cache:global-leaderboard:50`);
+    deletedCount++;
+
+    console.log(`Redis initialized successfully. Cleaned ${drawingIds.length} drawings, ${allUserIds.length} users, ${subredditNames.size} subreddits, and deleted ${deletedCount} keys.`);
 
     res.json({});
   } catch (error) {
