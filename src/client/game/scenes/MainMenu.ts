@@ -7,6 +7,7 @@ export class MainMenu extends Scene {
   playButton: GameObjects.Text | null = null;
   drawButton: GameObjects.Text | null = null;
   leaderboardButton: GameObjects.Text | null = null;
+  myHistoryButton: GameObjects.Text | null = null;
 
   constructor() {
     super('MainMenu');
@@ -19,6 +20,7 @@ export class MainMenu extends Scene {
     this.playButton = null;
     this.drawButton = null;
     this.leaderboardButton = null;
+    this.myHistoryButton = null;
   }
 
   create() {
@@ -217,18 +219,21 @@ export class MainMenu extends Scene {
       this.drawButton!.setScale(scaleFactor);
     }
 
+    const secondaryButtonsY = height * 0.78;
+    const buttonSpacing = 80;
+
     if (!this.leaderboardButton) {
       this.leaderboardButton = this.add
         .text(0, 0, 'Leaderboard', {
           fontFamily: 'Arial Black',
-          fontSize: '32px',
+          fontSize: '20px',
           color: '#ffffff',
           backgroundColor: '#9b59b6',
           padding: {
-            x: 30,
-            y: 15,
+            x: 10,
+            y: 10,
           } as Phaser.Types.GameObjects.Text.TextPadding,
-          fixedWidth: 320,
+          fixedWidth: 160,
           align: 'center',
         })
         .setOrigin(0.5)
@@ -249,9 +254,46 @@ export class MainMenu extends Scene {
         delay: 800,
       });
     }
-    this.leaderboardButton!.setPosition(width / 2, height * 0.78);
+    this.leaderboardButton!.setPosition(width / 2 - buttonSpacing, secondaryButtonsY);
     if (this.leaderboardButton!.alpha === 1) {
       this.leaderboardButton!.setScale(scaleFactor);
+    }
+
+    if (!this.myHistoryButton) {
+      this.myHistoryButton = this.add
+        .text(0, 0, 'My History', {
+          fontFamily: 'Arial Black',
+          fontSize: '20px',
+          color: '#ffffff',
+          backgroundColor: '#e67e22',
+          padding: {
+            x: 10,
+            y: 10,
+          } as Phaser.Types.GameObjects.Text.TextPadding,
+          fixedWidth: 160,
+          align: 'center',
+        })
+        .setOrigin(0.5)
+        .setAlpha(0)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerover', () => this.myHistoryButton!.setStyle({ backgroundColor: '#f39c12' }))
+        .on('pointerout', () => this.myHistoryButton!.setStyle({ backgroundColor: '#e67e22' }))
+        .on('pointerdown', () => {
+          this.scene.start('QuizHistory', { userId: 'testuser' });
+        });
+
+      this.tweens.add({
+        targets: this.myHistoryButton,
+        alpha: 1,
+        y: `+=${50}`,
+        duration: 600,
+        ease: 'Back.easeOut',
+        delay: 1000,
+      });
+    }
+    this.myHistoryButton!.setPosition(width / 2 + buttonSpacing, secondaryButtonsY);
+    if (this.myHistoryButton!.alpha === 1) {
+      this.myHistoryButton!.setScale(scaleFactor);
     }
   }
 }

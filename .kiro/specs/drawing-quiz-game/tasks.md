@@ -468,7 +468,7 @@ The phases progress from:
   - Update drawing leaderboard (top 5 per drawing) to show avatars
   - _Requirements: 11.1, 11.2_
 
-- [ ] 7.1.1 Update title screen with leaderboard navigation buttons
+- [x] 7.1.1 Update title screen with leaderboard navigation buttons
   - Add "Leaderboard" button to title screen (navigates to global leaderboard)
   - Add "My History" button to title screen
   - Size both buttons smaller than primary action buttons (~60-70% size)

@@ -31,7 +31,7 @@ export class QuizHistory extends Scene {
   }
 
   private createUI() {
-    const { width, height } = this.scale;
+    const { width } = this.scale;
 
     this.backButton = this.add
       .text(15, 15, '← Back', {
@@ -50,7 +50,7 @@ export class QuizHistory extends Scene {
     this.titleText = this.add
       .text(width / 2, 60, 'My Quiz History', {
         fontFamily: 'Arial Black',
-        fontSize: '48px',
+        fontSize: '32px',
         color: '#ffffff',
         stroke: '#000000',
         strokeThickness: 6,
@@ -186,9 +186,6 @@ export class QuizHistory extends Scene {
   }
 
   destroy() {
-    if (this.historyContainer && this.historyContainer.parentElement) {
-      this.historyContainer.parentElement.removeChild(this.historyContainer);
-    }
-    super.destroy();
+    this.cleanup();
   }
 }
