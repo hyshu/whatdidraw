@@ -171,6 +171,56 @@ router.post<{}, SubmitGuessResponse | { status: string; message: string }, { gue
   }
 );
 
+// Note: More specific routes must come before wildcard routes
+// /api/leaderboard/global must be defined before /api/leaderboard/:id
+router.get('/api/leaderboard/global', async (req, res): Promise<void> => {
+  try {
+    const { limit = '50' } = req.query;
+    const limitNum = parseInt(limit as string, 10);
+
+    if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Invalid limit (must be 1-100)'
+      });
+      return;
+    }
+
+    // Get Reddit username from context.userId (converts t2_xxxxx to username)
+    const currentUsername = context.userId ? await getUsernameFromId(context.userId) : undefined;
+
+    const result = await storage.getGlobalLeaderboard(limitNum, currentUsername);
+
+    const userIds = result.entries.map(entry => entry.userId);
+    const profiles = await getUserProfiles(userIds);
+
+    const entriesWithProfiles = result.entries.map(entry => {
+      const profile = profiles.get(entry.userId);
+      return {
+        userId: entry.userId,
+        totalScore: entry.totalScore,
+        quizCount: entry.quizCount,
+        lastUpdated: entry.lastUpdated,
+        rank: entry.rank,
+        avatarUrl: profile?.avatarUrl,
+      };
+    });
+
+    res.json({
+      type: 'getGlobalLeaderboard',
+      entries: entriesWithProfiles,
+      total: result.total,
+      currentUserRank: result.currentUserRank,
+    });
+  } catch (error) {
+    console.error('Error getting global leaderboard:', error);
+    res.status(400).json({
+      status: 'error',
+      message: 'Failed to get global leaderboard'
+    });
+  }
+});
+
 router.get<{ id: string }, GetLeaderboardResponse | { status: string; message: string }>(
   '/api/leaderboard/:id',
   async (req, res): Promise<void> => {
@@ -181,15 +231,6 @@ router.get<{ id: string }, GetLeaderboardResponse | { status: string; message: s
         res.status(400).json({
           status: 'error',
           message: 'Drawing ID is required'
-        });
-        return;
-      }
-
-      const drawing = await storage.getDrawing(id);
-      if (!drawing) {
-        res.status(404).json({
-          status: 'error',
-          message: 'Drawing not found'
         });
         return;
       }
@@ -402,54 +443,6 @@ router.get<{ userId: string }, { status: string; message: string }>(
     }
   }
 );
-
-router.get('/api/leaderboard/global', async (req, res): Promise<void> => {
-  try {
-    const { limit = '50' } = req.query;
-    const limitNum = parseInt(limit as string, 10);
-
-    if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
-      res.status(400).json({
-        status: 'error',
-        message: 'Invalid limit (must be 1-100)'
-      });
-      return;
-    }
-
-    // Get Reddit username from context.userId (converts t2_xxxxx to username)
-    const currentUsername = context.userId ? await getUsernameFromId(context.userId) : undefined;
-
-    const result = await storage.getGlobalLeaderboard(limitNum, currentUsername);
-
-    const userIds = result.entries.map(entry => entry.userId);
-    const profiles = await getUserProfiles(userIds);
-
-    const entriesWithProfiles = result.entries.map(entry => {
-      const profile = profiles.get(entry.userId);
-      return {
-        userId: entry.userId,
-        totalScore: entry.totalScore,
-        quizCount: entry.quizCount,
-        lastUpdated: entry.lastUpdated,
-        rank: entry.rank,
-        avatarUrl: profile?.avatarUrl,
-      };
-    });
-
-    res.json({
-      type: 'getGlobalLeaderboard',
-      entries: entriesWithProfiles,
-      total: result.total,
-      currentUserRank: result.currentUserRank,
-    });
-  } catch (error) {
-    console.error('Error getting global leaderboard:', error);
-    res.status(400).json({
-      status: 'error',
-      message: 'Failed to get global leaderboard'
-    });
-  }
-});
 
 router.post<{}, any, { drawingId: string; postTitle?: string }>(
   '/api/subreddit/post',

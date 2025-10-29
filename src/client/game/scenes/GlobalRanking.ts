@@ -60,6 +60,12 @@ export class GlobalRanking extends Scene {
     try {
       const result = await get<GetGlobalLeaderboardResponse>('/api/leaderboard/global?limit=50');
 
+      if (!result || !result.entries) {
+        console.error('Invalid response format:', result);
+        this.createLeaderboardHTML([]);
+        return;
+      }
+
       this.createLeaderboardHTML(result.entries, result.currentUserRank);
     } catch (error) {
       console.error('Error loading global leaderboard:', error);
