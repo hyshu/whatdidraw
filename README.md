@@ -1,6 +1,6 @@
 # What Did I Draw?
 
-This game was created to enter the [REDDIT AND KIRO: COMMUNITY GAMES CHALLENGE](https://communitygames2025.devpost.com)
+This game was created to apply for the [REDDIT AND KIRO: COMMUNITY GAMES CHALLENGE](https://communitygames2025.devpost.com).
 
 [Project Page](https://devpost.com/software/what-did-i-draw-drawing-quiz-game?ref_content=my-projects-tab&ref_feature=my_projects)
 
