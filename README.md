@@ -1,27 +1,31 @@
 # What Did I Draw?
 
-A fun drawing quiz game built as a Reddit app. Create drawings and challenge others to guess what you drew, or play quizzes created by other users!
+This game was created to enter the [REDDIT AND KIRO: COMMUNITY GAMES CHALLENGE](https://communitygames2025.devpost.com)
+
+[Project Page](https://devpost.com/software/what-did-i-draw-drawing-quiz-game?ref_content=my-projects-tab&ref_feature=my_projects)
+
+A Reddit app that lets you create a quiz game where players guess what picture you drew.
+Your drawing will be played back stroke by stroke in sequence, and the faster you guess it, the higher your score will be.
 
 ## Features
 
 ### 🎨 Create Drawing
 
-Draw your own quiz for others to solve:
+Can draw pictures for quizzes:
 
 - Use an intuitive canvas with multiple colors and brush sizes
-- Add an answer (1-50 characters, required)
-- Optionally add a hint (0-100 characters) to help players
-- Save your drawing and share it to the subreddit
+- Once your drawing is complete, write down picture answer and hints and post it!
+- After posting, you can also share it on the subreddit, allowing other players to play your quiz.
 
 ### 🎮 Play Quiz
 
-Test your guessing skills with drawings from other players:
+If you select “Play Quiz” from within the game rather than via Subreddit, you can play one randomly selected quiz from those posted.
 
-- View drawings stroke-by-stroke or all at once
-- Earn points based on how quickly you guess and how many strokes you viewed
+- Stroke by stroke, the picture gradually takes shape.
+- If you know what the drawing is, press Pause and enter your answer. The faster you are, the higher your score!
 - **Anti-cheat measures**:
-  - Answering your own quiz will result in **0 points**
   - Guessing too quickly (without viewing enough strokes) will result in **0 points**
+  - Also answering your own quiz will result in **0 points**
 - **Once you answer a quiz, you cannot answer it again** - each quiz can only be attempted once per player
 
 ### 🏆 Ranking & Leaderboard
@@ -38,4 +42,4 @@ After creating a drawing:
 
 - Post your quiz to the subreddit where the app is installed
 - Other users can discover and play your quiz
-- Build a collection of community-created challenges
+- Build a leaderboard of community-created challenges
