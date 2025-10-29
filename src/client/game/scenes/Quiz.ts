@@ -94,8 +94,14 @@ export class Quiz extends Scene {
 
       if (!result.drawing) {
         hideLoading();
-        alert('No drawings available. Please create a drawing first.');
-        this.scene.start('MainMenu');
+        this.showMessageAndReturn('No quizzes available!\nYou have answered all quizzes.\n\nClick to return to menu.');
+        return;
+      }
+
+      // If the user has already answered this quiz, redirect to leaderboard
+      if (result.alreadyAnswered) {
+        hideLoading();
+        this.scene.start('Leaderboard', { drawingId: result.drawing.id });
         return;
       }
 
@@ -112,13 +118,48 @@ export class Quiz extends Scene {
     } catch (error) {
       hideLoading();
       console.error('Error loading drawing:', error);
+      let errorMessage = 'Failed to load drawing.\nPlease try again.\n\nClick to return to menu.';
       if (error instanceof ApiError) {
-        alert(error.message);
-      } else {
-        alert('Failed to load drawing. Please try again.');
+        errorMessage = `${error.message}\n\nClick to return to menu.`;
       }
-      this.scene.start('MainMenu');
+      this.showMessageAndReturn(errorMessage);
     }
+  }
+
+  private showMessageAndReturn(message: string): void {
+    const { width, height } = this.scale;
+
+    // Semi-transparent background
+    const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
+    bg.setInteractive();
+
+    // Message box
+    const messageBox = this.add.rectangle(width / 2, height / 2, width * 0.8, height * 0.4, 0x6a4c93, 1);
+    messageBox.setStrokeStyle(4, 0xffffff);
+
+    // Message text
+    const messageText = this.add.text(width / 2, height / 2, message, {
+      fontFamily: 'Arial',
+      fontSize: '24px',
+      color: '#ffffff',
+      align: 'center',
+      wordWrap: { width: width * 0.7 }
+    }).setOrigin(0.5);
+
+    // Make it clickable to return
+    bg.on('pointerdown', () => {
+      this.scene.start('MainMenu');
+    });
+
+    messageBox.setInteractive();
+    messageBox.on('pointerdown', () => {
+      this.scene.start('MainMenu');
+    });
+
+    // Auto return after 5 seconds
+    this.time.delayedCall(5000, () => {
+      this.scene.start('MainMenu');
+    });
   }
 
   private createUI() {

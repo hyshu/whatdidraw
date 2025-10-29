@@ -70,12 +70,22 @@ router.get<{ drawingId?: string }, GetDrawingResponse | { status: string; messag
     try {
       const { drawingId } = req.query;
 
+      // Get username from context
+      const username = await getUsernameFromId(context.userId || 'anonymous');
+
       let drawing: Drawing | undefined;
+      let alreadyAnswered = false;
 
       if (drawingId && typeof drawingId === 'string') {
         drawing = await storage.getDrawing(drawingId);
+
+        // Check if user has already answered this specific quiz
+        if (drawing && username) {
+          alreadyAnswered = await storage.hasUserAnsweredQuiz(username, drawingId);
+        }
       } else {
-        drawing = await storage.getRandomDrawing();
+        // Get random drawing, excluding ones the user has already answered
+        drawing = await storage.getRandomDrawing(username);
       }
 
       if (!drawing) {
@@ -89,6 +99,7 @@ router.get<{ drawingId?: string }, GetDrawingResponse | { status: string; messag
       res.json({
         type: 'getDrawing',
         drawing,
+        alreadyAnswered,
       });
     } catch (error) {
       console.error('Error getting drawing:', error);

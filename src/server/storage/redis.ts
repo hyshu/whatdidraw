@@ -85,13 +85,37 @@ export class RedisStorage {
     return drawings.filter((d): d is Drawing => d !== undefined);
   }
 
-  async getRandomDrawing(): Promise<Drawing | undefined> {
+  async hasUserAnsweredQuiz(userId: string, drawingId: string): Promise<boolean> {
+    const scoreKey = `scores:${drawingId}:${userId}`;
+    const scoreExists = await this.redis.exists(scoreKey);
+    return scoreExists > 0;
+  }
+
+  async getRandomDrawing(userId?: string): Promise<Drawing | undefined> {
     const allDrawings = await this.getAllDrawings();
     if (allDrawings.length === 0) {
       return undefined;
     }
-    const randomIndex = Math.floor(Math.random() * allDrawings.length);
-    return allDrawings[randomIndex];
+
+    // If userId is provided, filter out drawings the user has already answered
+    let availableDrawings = allDrawings;
+    if (userId) {
+      const unansweredDrawings: Drawing[] = [];
+      for (const drawing of allDrawings) {
+        const hasAnswered = await this.hasUserAnsweredQuiz(userId, drawing.id);
+        if (!hasAnswered) {
+          unansweredDrawings.push(drawing);
+        }
+      }
+      availableDrawings = unansweredDrawings;
+    }
+
+    if (availableDrawings.length === 0) {
+      return undefined;
+    }
+
+    const randomIndex = Math.floor(Math.random() * availableDrawings.length);
+    return availableDrawings[randomIndex];
   }
 
   async saveScore(score: Omit<Score, 'id'>, subredditName?: string): Promise<string> {

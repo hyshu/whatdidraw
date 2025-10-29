@@ -43,6 +43,7 @@ export type InitResponse = {
 export type GetDrawingResponse = {
   type: 'getDrawing';
   drawing: Drawing | null;
+  alreadyAnswered?: boolean;
 };
 
 export type SubmitGuessResponse = {
