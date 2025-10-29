@@ -5,10 +5,11 @@
 What Did I Draw is a drawing quiz game for Reddit's Devvit platform. Users create drawings with answers, and others guess by watching the drawing replay. The system provides scoring and per-drawing rankings.
 
 **Core Modes:**
-1. **Create Mode**: Draw with basic tools and set answer/hint
+1. **Create Mode**: Draw with basic tools, set answer/hint, and optionally share to subreddit
 2. **Quiz Mode**: Watch replay and submit guesses for points
-3. **Leaderboard Mode**: View global player rankings (total scores) and per-drawing top 5 scores
+3. **Leaderboard Mode**: View global player rankings (total scores), per-drawing top 5 scores, and subreddit-specific rankings
 4. **My History Mode**: View personal quiz history and navigate to per-drawing leaderboards
+5. **Subreddit Browse Mode**: Browse and play quizzes shared to specific subreddits
 
 ## Architecture
 
@@ -33,7 +34,7 @@ Three core modules handle all functionality:
 
 ### Drawing Creation
 ```
-User draws → Validate (min 1 stroke) → Sanitize text → Store to Redis → Return unique ID
+User draws → Validate (min 1 stroke) → Sanitize text → Store to Redis → Return unique ID → Optional: Share to Subreddit
 ```
 
 ### Quiz Gameplay
@@ -158,6 +159,44 @@ interface QuizHistoryEntry {
   timeBonus: number;         // Score breakdown for display
 }
 ```
+
+### Subreddit Post Structure (Requirement 14)
+```typescript
+interface SubredditPost {
+  postId: string;            // Reddit post ID
+  drawingId: string;         // Reference to drawing
+  subredditName: string;     // Name of subreddit (e.g., "gaming")
+  postUrl: string;           // Full Reddit post URL
+  postTitle: string;         // Title of the Reddit post
+  postedAt: number;          // Unix timestamp of post creation
+  postedBy: string;          // Reddit username of creator
+}
+```
+
+### Subreddit Ranking Structure (Requirement 15)
+```typescript
+interface SubredditRankingEntry {
+  userId: string;            // Reddit username
+  subredditName: string;     // Name of subreddit
+  totalScore: number;        // Sum of best scores for quizzes in this subreddit
+  quizCount: number;         // Number of unique quizzes answered in this subreddit
+  rank: number;              // Ranking position within subreddit (1-based)
+  lastUpdated: number;       // Unix timestamp of last score update
+}
+```
+
+### Subreddit Quiz Metadata (Requirement 15)
+```typescript
+interface SubredditQuizMetadata {
+  drawingId: string;         // Reference to drawing
+  subredditName: string;     // Name of subreddit where posted
+  postId: string;            // Reddit post ID
+  answer: string;            // Drawing answer (for display purposes)
+  createdBy: string;         // Creator username
+  postedAt: number;          // Post creation timestamp
+}
+```
+
 
 ## Client Components
 
@@ -404,14 +443,17 @@ interface QuizHistoryEntry {
 
 ### API Handlers
 ```
-POST /api/drawings                    - Save new drawing
-GET  /api/drawings/:id                - Get drawing data
-GET  /api/drawings/random             - Get random drawing
-POST /api/scores                      - Submit score
-GET  /api/leaderboard/global          - Get global leaderboard (top players by total score)
-GET  /api/leaderboard/:id             - Get top 5 for drawing
-GET  /api/user/:userId/quiz-history   - Get user's quiz history (Requirement 11)
-GET  /api/user/:userId/profile        - Get Reddit user profile (avatar, etc.) (Requirement 11)
+POST /api/drawings                           - Save new drawing
+GET  /api/drawings/:id                       - Get drawing data
+GET  /api/drawings/random                    - Get random drawing
+POST /api/scores                             - Submit score
+GET  /api/leaderboard/global                 - Get global leaderboard (top players by total score)
+GET  /api/leaderboard/:id                    - Get top 5 for drawing
+GET  /api/user/:userId/quiz-history          - Get user's quiz history (Requirement 11)
+GET  /api/user/:userId/profile               - Get Reddit user profile (avatar, etc.) (Requirement 11)
+POST /api/subreddit/post                     - Share drawing quiz to subreddit (Requirement 14)
+GET  /api/subreddit/:name/ranking            - Get subreddit-specific player rankings (Requirement 15)
+GET  /api/subreddit/:name/quizzes            - Get quizzes posted to subreddit (Requirement 15)
 ```
 
 ### Drawing Handler
@@ -478,6 +520,54 @@ GET  /api/user/:userId/profile        - Get Reddit user profile (avatar, etc.) (
 - Cache key: `cache:global-leaderboard:{limit}`
 - Invalidates cache on any score update
 
+### Subreddit Post Handler (Requirement 14)
+- Validates drawing ID exists in Redis
+- Validates user authentication via Reddit context
+- Validates subreddit name format and existence
+- Creates Reddit post via Devvit's Reddit API
+- Post content includes:
+  - Custom title (or default: "Can you guess what I drew?")
+  - Quiz link: `/quiz/{drawingId}`
+  - Drawing metadata (creator, creation date)
+  - Call-to-action to play the quiz
+- Stores post mapping in Redis:
+  - `drawing:{drawingId}:post` hash with postId, subredditName, postUrl, postedAt, postTitle, postedBy
+  - `subreddit:{subredditName}:quizzes` sorted set (score: timestamp, member: drawingId)
+- Returns post details including Reddit post URL
+- Handles Reddit API errors:
+  - Rate limiting: return 429 with retry-after header
+  - Permission denied: return 403 with explanation
+  - Invalid subreddit: return 400 with error message
+  - Network errors: return 500 with retry option
+
+### Subreddit Ranking Handler (Requirement 15)
+- Fetches subreddit-specific player rankings from Redis
+- Validates subreddit name parameter
+- Retrieves from `subreddit:{name}:leaderboard` sorted set
+- Uses ZREVRANGE for top players (sorted by total subreddit score, descending)
+- Supports pagination (default: top 50, configurable to 10/20/50/100)
+- For each player:
+  - Fetches stats from `subreddit:{name}:player:{userId}` hash
+  - Retrieves Reddit avatar via User Profile Handler (with caching)
+  - Calculates rank position (1-based)
+- Highlights current user's position if in ranking
+- Implements caching (TTL: 5 minutes)
+- Cache key: `cache:subreddit:{name}:ranking:{limit}`
+- Invalidates cache on score update for that subreddit
+- Returns SubredditRankingEntry array
+- Handles empty ranking case
+
+### Subreddit Quiz Browser Handler (Requirement 15)
+- Fetches quizzes posted to specific subreddit
+- Validates subreddit name parameter
+- Retrieves from `subreddit:{name}:quizzes` sorted set using ZREVRANGE (newest first by timestamp)
+- Implements pagination (20 quizzes per page)
+- For each quiz:
+  - Fetches drawing metadata from `drawings:meta:{id}`
+  - Fetches post info from `drawing:{id}:post`
+- Returns SubredditQuizMetadata array
+- Handles empty quiz list case
+
 ## Storage Schema
 
 ```
@@ -525,6 +615,24 @@ player:{userId}:stats       -> Hash (player statistics)
 cache:global-leaderboard:{limit} -> String (cached global leaderboard JSON)
                                TTL: 5 minutes
                                Reduces Redis queries for leaderboard display
+
+# Subreddit Integration (Requirement 14, 15)
+drawing:{drawingId}:post    -> Hash (Reddit post information)
+                               Fields: postId, subredditName, postUrl, postedAt,
+                                       postTitle, postedBy
+subreddit:{name}:quizzes    -> Sorted Set (quizzes posted to subreddit)
+                               Score: postedAt timestamp
+                               Member: drawingId
+                               For chronological quiz browsing
+subreddit:{name}:leaderboard -> Sorted Set (subreddit player rankings)
+                               Score: user's total score within subreddit
+                               Member: userId
+                               Updated atomically with score submissions
+subreddit:{name}:player:{userId} -> Hash (player stats within subreddit)
+                               Fields: totalScore, quizCount, lastUpdated
+cache:subreddit:{name}:ranking:{limit} -> String (cached subreddit ranking JSON)
+                               TTL: 5 minutes
+                               Reduces Redis queries
 ```
 
 ## Input Validation
@@ -569,8 +677,16 @@ cache:global-leaderboard:{limit} -> String (cached global leaderboard JSON)
 11. Server generates ID: Redis INCR on `drawings:id:counter`
 12. Server stores: `drawings:{id}`, `drawings:meta:{id}`, update `drawings:list`
 13. Server returns: drawing ID and success status
-14. Client displays: brief success message/notification with ID
-15. Client navigates: return to title screen
+14. Client displays: success message with "Share to Subreddit" button (Requirement 14)
+15. IF user clicks "Share to Subreddit":
+    a. Client displays subreddit selection modal
+    b. User selects subreddit and optionally enters custom post title
+    c. Client sends POST /api/subreddit/post with drawingId, subredditName, postTitle
+    d. Server creates Reddit post via Reddit API
+    e. Server stores post mapping in Redis (`drawing:{id}:post`, `subreddit:{name}:quizzes`)
+    f. Server returns post URL
+    g. Client displays success with link to Reddit post
+16. Client navigates: return to title screen
 
 ### Quiz Flow
 1. User selects "Play Quiz" (Quiz_Interface)
@@ -595,7 +711,7 @@ cache:global-leaderboard:{limit} -> String (cached global leaderboard JSON)
 20. Client displays: latest result at top, full quiz history below
 21. Client offers: "View Drawing Leaderboard", "Play Another", "Create Drawing"
 
-### Atomic Score Update (Requirement 9, 11)
+### Atomic Score Update (Requirement 9, 11, 15)
 ```
 # Retry loop: up to 3 attempts
 For attempt in 1..3:
@@ -604,6 +720,12 @@ For attempt in 1..3:
   WATCH user:{userId}:quiz-history
   WATCH player:{userId}:stats
   WATCH global:leaderboard
+
+  # If drawing is associated with subreddit, also watch subreddit leaderboard
+  subredditName = HGET drawing:{drawingId}:post "subredditName"
+  IF subredditName exists:
+    WATCH subreddit:{subredditName}:leaderboard
+    WATCH subreddit:{subredditName}:player:{userId}
 
   # Get existing score
   existingScore = HGET scores:{drawingId}:{userId} "score"
@@ -621,6 +743,13 @@ For attempt in 1..3:
     scoreDifference = newScore - (existingScore OR 0)
     newTotalScore = currentTotalScore + scoreDifference
     newQuizCount = currentQuizCount + (existingScore is NULL ? 1 : 0)
+
+    # If subreddit quiz, get subreddit player stats
+    IF subredditName exists:
+      currentSubredditTotalScore = HGET subreddit:{subredditName}:player:{userId} "totalScore" (default: 0)
+      currentSubredditQuizCount = HGET subreddit:{subredditName}:player:{userId} "quizCount" (default: 0)
+      newSubredditTotalScore = currentSubredditTotalScore + scoreDifference
+      newSubredditQuizCount = currentSubredditQuizCount + (existingScore is NULL ? 1 : 0)
 
     MULTI
       # Update user's score for this drawing
@@ -651,6 +780,17 @@ For attempt in 1..3:
         quizCount: newQuizCount
         lastUpdated: timestamp
 
+      # Update subreddit leaderboard if applicable (Requirement 15)
+      IF subredditName exists:
+        ZADD subreddit:{subredditName}:leaderboard newSubredditTotalScore userId
+        HMSET subreddit:{subredditName}:player:{userId}
+          totalScore: newSubredditTotalScore
+          quizCount: newSubredditQuizCount
+          lastUpdated: timestamp
+
+        # Invalidate subreddit ranking cache
+        DEL cache:subreddit:{subredditName}:ranking:*
+
       # Invalidate global leaderboard cache
       DEL cache:global-leaderboard:*
     EXEC
@@ -672,10 +812,13 @@ For attempt in 1..3:
 - **Scenes**:
   - `TitleScene`: Main menu with navigation to all modes
   - `DrawingScene`: Active canvas, tools, stroke recording
-  - `QuizScene`: Playback engine, guess input, timer
+  - `QuizScene`: Playback engine, guess input, timer, subreddit context display
   - `QuizHistoryScene`: User's quiz history display (Requirement 11)
   - `LeaderboardScene`: Rankings display per drawing (top 5 with Reddit avatars)
-  - `GlobalLeaderboardScene`: Global player rankings by total score
+  - `GlobalRankingScene`: Global player rankings by total score
+  - `SubredditRankingScene`: Subreddit-specific player rankings (Requirement 15)
+  - `SubredditQuizBrowseScene`: Browse and select quizzes from subreddit (Requirement 15)
+  - `SubredditShareModal`: Modal for sharing drawing to subreddit (Requirement 14)
 - **Transitions**: Managed by Phaser scene stack
 
 ### Scene Lifecycle Management
@@ -727,14 +870,18 @@ init(): void {
 Home / Main Menu (Title Screen)
  ├─ Create Drawing
  │   ├─ Canvas (active drawing)
- │   ├─ Finish → Answer/Hint Input Form → Return to Title Screen
+ │   ├─ Finish → Answer/Hint Input Form → Success Screen
+ │   ├─ Success Screen:
+ │   │   ├─ "Share to Subreddit" button (Requirement 14)
+ │   │   │   └─ Subreddit Selection Modal → Reddit Post Creation → Return to Title Screen
+ │   │   └─ "Skip" or "Done" → Return to Title Screen
  │   └─ Back button (top-left) → Title Screen
  ├─ Play Quiz
- │   ├─ Random Drawing Selection
+ │   ├─ Random Drawing Selection OR Subreddit Quiz Browse
  │   ├─ Playback & Guess
- │   ├─ Submit Answer → Quiz History
+ │   ├─ Submit Answer → Quiz History (with subreddit context if applicable)
  │   └─ Back button (top-left) → Title Screen
- ├─ Global Leaderboard
+ ├─ Global Ranking
  │   ├─ Display top players by total score (sum of all best quiz scores)
  │   ├─ Show player avatars, usernames, total scores, and quiz counts
  │   ├─ Pagination: top 50 by default (configurable)
@@ -742,18 +889,34 @@ Home / Main Menu (Title Screen)
  │   └─ Back button (top-left) → Title Screen
  ├─ My History
  │   ├─ Show Latest Result (if just completed quiz)
+ │   │   └─ If from subreddit: "Your rank in r/{name}: #X" (Requirement 15)
  │   ├─ List All User's Answered Quizzes (most recent first)
+ │   │   └─ Subreddit badge displayed if quiz from subreddit
  │   ├─ Navigation Options:
  │   │   ├─ View Drawing Leaderboard (for specific drawing)
+ │   │   ├─ View Subreddit Ranking (if quiz from subreddit)
  │   │   ├─ Play Another Quiz
  │   │   └─ Create Drawing
  │   └─ Back button (top-left) → Title Screen
- └─ Drawing Leaderboard (per drawing)
-     ├─ Top 5 Scores with Reddit Avatars (Requirement 11)
-     ├─ User's Rank (if applicable)
-     ├─ Username formatted as u/username (Requirement 11)
-     ├─ My History button (top-right) → My History (Requirement 11)
-     └─ Back button (top-left) → My History or Title Screen
+ ├─ Drawing Leaderboard (per drawing)
+ │   ├─ Top 5 Scores with Reddit Avatars (Requirement 11)
+ │   ├─ User's Rank (if applicable)
+ │   ├─ Username formatted as u/username (Requirement 11)
+ │   ├─ My History button (top-right) → My History (Requirement 11)
+ │   └─ Back button (top-left) → My History or Title Screen
+ ├─ Subreddit Ranking (Requirement 15)
+ │   ├─ Subreddit Selection (list of participated subreddits)
+ │   ├─ Display top players in selected subreddit
+ │   ├─ Show avatars, usernames, total subreddit scores, quiz counts
+ │   ├─ Pagination: top 50 by default (configurable)
+ │   ├─ Highlight current user's rank if in ranking
+ │   └─ Back button (top-left) → Title Screen
+ └─ Subreddit Quiz Browse (Requirement 15)
+     ├─ Subreddit Selection
+     ├─ Display quizzes posted to selected subreddit (newest first)
+     ├─ Pagination: 20 quizzes per page
+     ├─ Select quiz → Play Quiz with subreddit context
+     └─ Back button (top-left) → Title Screen
 ```
 
 ### Unified Navigation

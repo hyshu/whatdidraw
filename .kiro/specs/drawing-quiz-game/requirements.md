@@ -197,3 +197,36 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 4. THE "Ranking" and "My History" buttons SHALL be horizontally aligned below the main action buttons
 5. THE title screen layout SHALL stack buttons vertically on narrow screens (below 768px) to prevent overlap
 6. THE title screen navigation buttons SHALL remain accessible on all screen sizes without causing horizontal scrolling
+
+### Requirement 14
+
+**User Story:** As a content creator, I want to share my drawing quizzes to specific subreddits, so that I can engage with Reddit communities and get more people to play my quizzes.
+
+#### Acceptance Criteria
+
+1. AFTER creating a drawing, THE Drawing_System SHALL provide a "Share to Subreddit" button
+2. WHEN the share button is clicked, THE system SHALL display a subreddit selection interface with available subreddits
+3. THE system SHALL allow the user to add an optional custom title for the Reddit post (default: "Can you guess what I drew?")
+4. WHEN a user submits the share form, THE system SHALL create a Reddit post via the Reddit API including:
+   - A link to the quiz
+   - Preview information (drawing metadata)
+   - Creator information (u/username)
+5. THE Storage_System SHALL store the mapping between drawing ID and Reddit post ID for future reference
+6. AFTER successful post creation, THE system SHALL display a success message with a link to the Reddit post
+7. WHEN Reddit API fails, THE system SHALL display appropriate error messages for different failure types (permissions, rate limits, invalid subreddit)
+
+### Requirement 15
+
+**User Story:** As a player, I want to see subreddit-specific rankings and browse quizzes from specific subreddits, so that I can compete within Reddit communities and discover quizzes shared to my favorite subreddits.
+
+#### Acceptance Criteria
+
+1. THE Quiz_Interface SHALL provide access to subreddit-specific ranking displays
+2. THE Storage_System SHALL maintain separate leaderboards for each subreddit tracking users' total scores within that subreddit
+3. THE subreddit ranking SHALL display top players (default: top 50) with rank, avatar, username (u/username format), total score (subreddit-specific), and quiz count (subreddit-specific)
+4. THE subreddit ranking SHALL highlight the current user's rank if they appear in the ranking
+5. THE system SHALL implement pagination for subreddit rankings (10/20/50/100 players)
+6. THE system SHALL provide a subreddit quiz browsing interface displaying all quizzes posted to a specific subreddit in chronological order (newest first)
+7. WHEN a user completes a quiz that originated from a subreddit post, THE Quiz_Interface SHALL display "Your rank in r/{subredditName}: #X" in the result screen
+8. THE Storage_System SHALL update subreddit leaderboards atomically during score submissions in the same transaction as global and per-drawing leaderboards
+9. THE system SHALL implement caching for subreddit rankings (TTL: 5 minutes) to reduce database load

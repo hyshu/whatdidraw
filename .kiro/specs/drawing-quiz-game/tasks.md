@@ -583,3 +583,99 @@ The phases progress from:
   - Test concurrent quiz submissions don't corrupt history or global ranking
   - Test global ranking updates correctly when multiple users submit scores
   - _Requirements: 11.1-11.8, Global ranking requirements_
+
+### Phase 8: Subreddit Quiz Sharing and Subreddit Rankings
+
+- [x] 8. Enable subreddit quiz sharing and subreddit-specific rankings
+- [x] 8.1 Implement quiz post creation to subreddit
+  - Add "Share to Subreddit" button in Drawing scene after successful save
+  - Create modal/form for subreddit selection and post configuration
+  - Display list of available subreddits user can post to (or default to app's subreddit)
+  - Allow user to add custom title for Reddit post (optional, default: "Can you guess what I drew?")
+  - Generate post content with quiz link, preview thumbnail, and creator info
+  - Implement POST /api/subreddit/post endpoint
+  - Use Reddit API (via Devvit context) to create post in selected subreddit
+  - Store mapping between drawing ID and Reddit post ID in Redis
+  - Display success message with link to Reddit post
+  - Handle Reddit API errors (permissions, rate limits, invalid subreddit)
+  - _Requirements: 14.1, 14.2, 14.3, 14.4_
+
+- [x] 8.2 Implement subreddit-specific storage schema
+  - Create Redis schema for subreddit quiz associations
+  - Store subreddit quiz list: `subreddit:{subredditName}:quizzes` (sorted set)
+    - Score: post creation timestamp
+    - Member: drawingId
+  - Store drawing-to-post mapping: `drawing:{drawingId}:post`
+    - Fields: postId, subredditName, postUrl, postedAt, postTitle
+  - Store subreddit leaderboard: `subreddit:{subredditName}:leaderboard`
+    - Score: user's total score within subreddit (sum of best scores)
+    - Member: userId
+  - Update atomic score submission to include subreddit leaderboard update
+  - _Requirements: 14.5, 15.2_
+
+- [x] 8.3 Implement subreddit ranking UI
+  - Create new SubredditRankingScene in Phaser
+  - Add "Subreddit Ranking" button to title screen (optional, or navigate via quiz context)
+  - Display subreddit selection UI (list of subreddits user has participated in)
+  - Create GET /api/subreddit/:subredditName/ranking endpoint
+  - Return list of top players within subreddit (top 50 by default)
+  - Display player rank, avatar, username (u/username), total score (subreddit-specific), quiz count (subreddit-specific)
+  - Highlight current user's rank if in ranking
+  - Show "No players in this subreddit yet" empty state
+  - Add pagination support (10/20/50/100 players)
+  - Implement caching (TTL: 5 minutes) similar to global ranking
+  - Add "Back" button to return to subreddit selection or title screen
+  - _Requirements: 15.1, 15.3, 15.4, 15.5_
+
+- [x] 8.4 Add subreddit quiz browsing
+  - Create SubredditQuizBrowseScene in Phaser
+  - Add "Browse Subreddit Quizzes" option to title screen or quiz mode
+  - Display list of quizzes posted to a specific subreddit (newest first)
+  - Show quiz preview: answer (hidden), creator, post date
+  - Implement GET /api/subreddit/:subredditName/quizzes endpoint
+  - Return paginated list of quizzes (20 per page)
+  - Allow user to select and play quiz directly from list
+  - Display "No quizzes in this subreddit yet" empty state
+  - _Requirements: 15.6_
+
+- [x] 8.5 Update quiz result to show subreddit context
+  - If quiz was played via subreddit post link, display subreddit context
+  - Show "Your rank in r/{subredditName}: #X" after quiz completion
+  - Add "View Subreddit Ranking" button to quiz result
+  - Update QuizHistoryScene to show subreddit badge if quiz was from subreddit
+  - Display subreddit icon/badge next to quiz entry in history
+  - _Requirements: 15.8_
+
+- [ ] 8.6 Test Phase 8 implementation
+  - Test "Share to Subreddit" button appears after drawing save
+  - Verify subreddit selection modal displays available subreddits
+  - Test custom post title input (optional field)
+  - Verify POST /api/subreddit/post creates Reddit post correctly
+  - Test Reddit post content includes quiz link and preview
+  - Verify drawing-to-post mapping stored in Redis
+  - Test success message displays with Reddit post link
+  - Verify error handling for Reddit API failures (permissions, rate limits)
+  - Test subreddit quiz list storage (`subreddit:{name}:quizzes`)
+  - Verify drawing-to-post mapping storage (`drawing:{id}:post`)
+  - Test subreddit leaderboard storage (`subreddit:{name}:leaderboard`)
+  - Verify atomic score submission updates subreddit leaderboard
+  - Test SubredditRankingScene displays top players correctly
+  - Verify GET /api/subreddit/:name/ranking returns correct data
+  - Test subreddit ranking sorted by total subreddit score
+  - Verify player avatars and usernames display correctly
+  - Test current user rank highlighting in subreddit ranking
+  - Verify "No players in this subreddit yet" empty state
+  - Test pagination for subreddit ranking (10/20/50/100)
+  - Verify subreddit ranking cache (TTL: 5 minutes)
+  - Test SubredditQuizBrowseScene displays quiz list (newest first)
+  - Verify GET /api/subreddit/:name/quizzes returns paginated list
+  - Test direct quiz play from subreddit quiz list
+  - Verify "No quizzes in this subreddit yet" empty state
+  - Test subreddit context display in quiz result
+  - Verify "Your rank in r/{subredditName}" displays after completion
+  - Test "View Subreddit Ranking" button navigation
+  - Verify subreddit badge displays in QuizHistoryScene
+  - Test full flow: create drawing → share to subreddit → play quiz → view subreddit ranking
+  - Verify data consistency across drawing, post, scores, and subreddit rankings
+  - Test concurrent score submissions update subreddit rankings correctly
+  - _Requirements: 14.1-14.5, 15.1-15.8_
