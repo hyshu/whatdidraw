@@ -4,6 +4,7 @@ import { Drawing } from './scenes/Drawing';
 import { Quiz } from './scenes/Quiz';
 import { Leaderboard } from './scenes/Leaderboard';
 import { QuizHistory } from './scenes/QuizHistory';
+import { GlobalLeaderboard } from './scenes/GlobalLeaderboard';
 import * as Phaser from 'phaser';
 import { AUTO, Game } from 'phaser';
 import { Preloader } from './scenes/Preloader';
@@ -18,7 +19,7 @@ const config: Phaser.Types.Core.GameConfig = {
     width: 1024,
     height: 768,
   },
-  scene: [Boot, Preloader, MainMenu, Drawing, Quiz, Leaderboard, QuizHistory],
+  scene: [Boot, Preloader, MainMenu, Drawing, Quiz, Leaderboard, QuizHistory, GlobalLeaderboard],
 };
 
 const StartGame = (parent: string) => {

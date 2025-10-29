@@ -36,6 +36,7 @@ export type InitResponse = {
   type: 'init';
   postId: string;
   gameState: 'menu' | 'drawing' | 'guessing' | 'results';
+  userId: string; // Reddit username
 };
 
 export type GetDrawingResponse = {
@@ -92,4 +93,20 @@ export type GetQuizHistoryResponse = {
   total: number;
   page: number;
   limit: number;
+};
+
+export interface GlobalLeaderboardEntry {
+  userId: string;
+  totalScore: number;
+  quizCount: number;
+  lastUpdated: number;
+  rank: number;
+  avatarUrl?: string;
+}
+
+export type GetGlobalLeaderboardResponse = {
+  type: 'getGlobalLeaderboard';
+  entries: GlobalLeaderboardEntry[];
+  total: number;
+  currentUserRank?: number;
 };

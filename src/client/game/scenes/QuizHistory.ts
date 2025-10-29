@@ -153,6 +153,7 @@ export class QuizHistory extends Scene {
           viewLeaderboardButton.style.background = '#6a4c93';
         };
         viewLeaderboardButton.onclick = () => {
+          this.cleanup();
           this.scene.start('Leaderboard', { drawingId: entry.drawingId });
         };
 

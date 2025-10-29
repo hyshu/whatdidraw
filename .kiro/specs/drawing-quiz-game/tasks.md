@@ -503,7 +503,7 @@ The phases progress from:
   - Add "Back" button to return to title screen
   - _Requirements: Global leaderboard UI and functionality_
 
-- [ ] 7.3 Add Redis storage for quiz history and global leaderboard
+- [x] 7.3 Add Redis storage for quiz history and global leaderboard
   - Store user quiz history in Redis sorted set: `user:{userId}:quiz-history`
   - Score: timestamp (for chronological sorting)
   - Member: JSON string with {drawingId, score, baseScore, timeBonus, rank, submittedAt}

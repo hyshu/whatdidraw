@@ -1,4 +1,6 @@
 import { Scene } from 'phaser';
+import { get } from '../../utils/api';
+import { InitResponse } from '../../../shared/types/api';
 
 export class Preloader extends Scene {
   constructor() {
@@ -21,7 +23,18 @@ export class Preloader extends Scene {
     this.load.setPath('assets');
   }
 
-  create() {
+  async create() {
+    try {
+      // Fetch userId from server
+      const initData = await get<InitResponse>('/api/init');
+      // Store userId in registry for access by other scenes
+      this.registry.set('userId', initData.userId);
+    } catch (error) {
+      console.error('Error fetching init data:', error);
+      // Fallback to anonymous if init fails
+      this.registry.set('userId', 'anonymous');
+    }
+
     this.scene.start('MainMenu');
   }
 }

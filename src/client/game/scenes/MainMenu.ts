@@ -242,7 +242,7 @@ export class MainMenu extends Scene {
         .on('pointerover', () => this.leaderboardButton!.setStyle({ backgroundColor: '#a569bd' }))
         .on('pointerout', () => this.leaderboardButton!.setStyle({ backgroundColor: '#9b59b6' }))
         .on('pointerdown', () => {
-          this.scene.start('Leaderboard');
+          this.scene.start('GlobalLeaderboard');
         });
 
       this.tweens.add({
@@ -279,7 +279,8 @@ export class MainMenu extends Scene {
         .on('pointerover', () => this.myHistoryButton!.setStyle({ backgroundColor: '#f39c12' }))
         .on('pointerout', () => this.myHistoryButton!.setStyle({ backgroundColor: '#e67e22' }))
         .on('pointerdown', () => {
-          this.scene.start('QuizHistory', { userId: 'testuser' });
+          const userId = this.registry.get('userId') || 'anonymous';
+          this.scene.start('QuizHistory', { userId });
         });
 
       this.tweens.add({

@@ -105,6 +105,8 @@ export class RedisStorage {
         const scoreKey = `scores:${score.drawingId}:${score.userId}`;
         const leaderboardKey = `leaderboard:${score.drawingId}`;
         const quizHistoryKey = `user:${score.userId}:quiz-history`;
+        const playerStatsKey = `player:${score.userId}:stats`;
+        const globalLeaderboardKey = `global:leaderboard`;
 
         const existingScoreData = await this.redis.hGetAll(scoreKey);
         const existingScore = existingScoreData && existingScoreData.score
@@ -115,7 +117,19 @@ export class RedisStorage {
           return scoreKey;
         }
 
-        const txn = await this.redis.watch(scoreKey, leaderboardKey, quizHistoryKey);
+        const playerStats = await this.redis.hGetAll(playerStatsKey);
+        const currentTotalScore = playerStats?.totalScore
+          ? parseInt(playerStats.totalScore as string, 10)
+          : 0;
+        const currentQuizCount = playerStats?.quizCount
+          ? parseInt(playerStats.quizCount as string, 10)
+          : 0;
+
+        const scoreDifference = score.score - (existingScore || 0);
+        const newTotalScore = currentTotalScore + scoreDifference;
+        const newQuizCount = existingScore === null ? currentQuizCount + 1 : currentQuizCount;
+
+        const txn = await this.redis.watch(scoreKey, leaderboardKey, quizHistoryKey, playerStatsKey, globalLeaderboardKey);
 
         await txn.multi();
 
@@ -149,6 +163,19 @@ export class RedisStorage {
           member: historyEntry,
           score: score.submittedAt,
         });
+
+        await txn.zAdd(globalLeaderboardKey, {
+          member: score.userId,
+          score: newTotalScore,
+        });
+
+        await txn.hSet(playerStatsKey, {
+          totalScore: newTotalScore.toString(),
+          quizCount: newQuizCount.toString(),
+          lastUpdated: score.submittedAt.toString(),
+        });
+
+        await txn.del(`cache:global-leaderboard:50`);
 
         const result = await txn.exec();
 
@@ -240,8 +267,10 @@ export class RedisStorage {
         const drawingMeta = await this.redis.hGetAll(`drawings:meta:${entryData.drawingId}`);
 
         const leaderboardKey = `leaderboard:${entryData.drawingId}`;
-        const rank = await this.redis.zRevRank(leaderboardKey, userId);
-        const rankValue = rank !== null && rank < 5 ? rank + 1 : null;
+        // Get all members in the leaderboard (sorted by score descending)
+        const leaderboard = await this.redis.zRange(leaderboardKey, 0, -1, { by: 'rank', reverse: true });
+        const rank = leaderboard?.findIndex((item: { member: string }) => item.member === userId) ?? -1;
+        const rankValue = rank !== -1 && rank < 5 ? rank + 1 : null;
 
         return {
           drawingId: entryData.drawingId,
@@ -256,5 +285,54 @@ export class RedisStorage {
     );
 
     return { entries, total };
+  }
+
+  async getGlobalLeaderboard(limit: number = 50, currentUserId?: string): Promise<{
+    entries: Array<{
+      userId: string;
+      totalScore: number;
+      quizCount: number;
+      lastUpdated: number;
+      rank: number;
+    }>;
+    total: number;
+    currentUserRank?: number;
+  }> {
+    const globalLeaderboardKey = `global:leaderboard`;
+
+    const total = await this.redis.zCard(globalLeaderboardKey) || 0;
+
+    const topPlayers = await this.redis.zRange(globalLeaderboardKey, 0, limit - 1, { by: 'rank', reverse: true });
+
+    if (!topPlayers || topPlayers.length === 0) {
+      return { entries: [], total };
+    }
+
+    const entries = await Promise.all(
+      topPlayers.map(async (item: { member: string; score: number }, index: number) => {
+        const playerStatsKey = `player:${item.member}:stats`;
+        const playerStats = await this.redis.hGetAll(playerStatsKey);
+
+        return {
+          userId: item.member,
+          totalScore: item.score,
+          quizCount: playerStats?.quizCount ? parseInt(playerStats.quizCount as string, 10) : 0,
+          lastUpdated: playerStats?.lastUpdated ? parseInt(playerStats.lastUpdated as string, 10) : 0,
+          rank: index + 1,
+        };
+      })
+    );
+
+    let currentUserRank: number | undefined = undefined;
+    if (currentUserId) {
+      // Get all members in the global leaderboard (sorted by score descending)
+      const allPlayers = await this.redis.zRange(globalLeaderboardKey, 0, -1, { by: 'rank', reverse: true });
+      const rank = allPlayers?.findIndex((item: { member: string }) => item.member === currentUserId) ?? -1;
+      if (rank !== -1) {
+        currentUserRank = rank + 1;
+      }
+    }
+
+    return { entries, total, ...(currentUserRank !== undefined && { currentUserRank }) };
   }
 }

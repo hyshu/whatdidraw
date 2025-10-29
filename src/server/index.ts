@@ -12,7 +12,7 @@ import { redis, createServer, context } from '@devvit/web/server';
 import { createPost } from './core/post';
 import { RedisStorage } from './storage/redis';
 import { validateDrawing, sanitizeText } from '../shared/utils/validation';
-import { getUserProfile, getUserProfiles } from './handlers/userProfile';
+import { getUserProfile, getUserProfiles, getUsernameFromId } from './handlers/userProfile';
 
 const storage = new RedisStorage(redis);
 
@@ -38,10 +38,14 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
     }
 
     try {
+      // Get Reddit username from context.userId (converts t2_xxxxx to username)
+      const username = await getUsernameFromId(context.userId || 'anonymous');
+
       res.json({
         type: 'init',
         postId: postId,
         gameState: 'menu',
+        userId: username,
       });
     } catch (error) {
       console.error(`API Init Error for post ${postId}:`, error);
@@ -126,10 +130,11 @@ router.post<{}, SubmitGuessResponse | { status: string; message: string }, { gue
         timeBonus = Math.max(0, (60 - elapsedTime) * 10);
         totalScore = baseScore + timeBonus;
 
-        const userId = context.userId || 'anonymous';
+        // Get Reddit username from context.userId (converts t2_xxxxx to username)
+        const username = await getUsernameFromId(context.userId || 'anonymous');
         await storage.saveScore({
           drawingId,
-          userId,
+          userId: username,
           score: totalScore,
           baseScore,
           timeBonus,
@@ -247,8 +252,11 @@ router.post<{}, SaveDrawingResponse | { status: string; message: string }, { dra
       const sanitizedAnswer = sanitizeText(drawing.answer || '');
       const sanitizedHint = drawing.hint ? sanitizeText(drawing.hint) : undefined;
 
+      // Get Reddit username from context.userId (converts t2_xxxxx to username)
+      const username = drawing.createdBy || await getUsernameFromId(context.userId || 'anonymous');
+
       const drawingToSave: Omit<Drawing, 'id'> = {
-        createdBy: drawing.createdBy || context.userId || 'anonymous',
+        createdBy: username,
         createdAt: Date.now(),
         answer: sanitizedAnswer,
         strokes: drawing.strokes || [],
@@ -385,6 +393,54 @@ router.get<{ userId: string }, { status: string; message: string }>(
     }
   }
 );
+
+router.get('/api/leaderboard/global', async (req, res): Promise<void> => {
+  try {
+    const { limit = '50' } = req.query;
+    const limitNum = parseInt(limit as string, 10);
+
+    if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+      res.status(400).json({
+        status: 'error',
+        message: 'Invalid limit (must be 1-100)'
+      });
+      return;
+    }
+
+    // Get Reddit username from context.userId (converts t2_xxxxx to username)
+    const currentUsername = context.userId ? await getUsernameFromId(context.userId) : undefined;
+
+    const result = await storage.getGlobalLeaderboard(limitNum, currentUsername);
+
+    const userIds = result.entries.map(entry => entry.userId);
+    const profiles = await getUserProfiles(userIds);
+
+    const entriesWithProfiles = result.entries.map(entry => {
+      const profile = profiles.get(entry.userId);
+      return {
+        userId: entry.userId,
+        totalScore: entry.totalScore,
+        quizCount: entry.quizCount,
+        lastUpdated: entry.lastUpdated,
+        rank: entry.rank,
+        avatarUrl: profile?.avatarUrl,
+      };
+    });
+
+    res.json({
+      type: 'getGlobalLeaderboard',
+      entries: entriesWithProfiles,
+      total: result.total,
+      currentUserRank: result.currentUserRank,
+    });
+  } catch (error) {
+    console.error('Error getting global leaderboard:', error);
+    res.status(400).json({
+      status: 'error',
+      message: 'Failed to get global leaderboard'
+    });
+  }
+});
 
 router.post('/internal/init-redis', async (_req, res): Promise<void> => {
   try {
