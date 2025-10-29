@@ -503,25 +503,7 @@ The phases progress from:
   - Add "Back" button to return to title screen
   - _Requirements: Global leaderboard UI and functionality_
 
-- [ ] 7.3 Update quiz result navigation flow
-  - After quiz answer submission, navigate to QuizHistoryScene instead of DrawingLeaderboardScene
-  - Display quiz result summary at top: score breakdown, drawing answer, hint
-  - Highlight the just-completed quiz in the history list
-  - Add "View Drawing Leaderboard" button to navigate to specific drawing's top 5
-  - Add "Play Another Quiz" button to start new random quiz
-  - Add "Create Drawing" button to navigate to drawing mode
-  - _Requirements: 11.6, 11.7_
-
-- [ ] 7.3.1 Add My History button to Leaderboard scene
-  - Add "My History" button in top-right corner of LeaderboardScene
-  - Position button in same row as Back button (top bar)
-  - Size button same as Back button for visual consistency
-  - Button navigates to QuizHistoryScene when clicked
-  - Ensure button doesn't overlap with title or other UI elements
-  - Test button functionality on mobile and desktop
-  - _Requirements: 11.8_
-
-- [ ] 7.4 Add Redis storage for quiz history and global leaderboard
+- [ ] 7.3 Add Redis storage for quiz history and global leaderboard
   - Store user quiz history in Redis sorted set: `user:{userId}:quiz-history`
   - Score: timestamp (for chronological sorting)
   - Member: JSON string with {drawingId, score, baseScore, timeBonus, rank, submittedAt}
@@ -540,7 +522,7 @@ The phases progress from:
   - Invalidate cache on any score update (DEL cache:global-leaderboard:*)
   - _Requirements: 11.3, 11.4, Global leaderboard storage_
 
-- [ ] 7.5 Test Phase 7 implementation
+- [ ] 7.4 Test Phase 7 implementation
   - Test Reddit user avatar fetching from API
   - Verify avatar display in drawing leaderboards (32x32px or 40x40px)
   - Test username formatting as u/username
