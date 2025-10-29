@@ -456,7 +456,7 @@ The phases progress from:
   - Test validation error messages are descriptive
   - _Requirements: 7.1-7.5_
 
-### Phase 7: User Profile, Quiz History, and Global Leaderboard
+### Phase 7: User Profile, Quiz History, and Global Ranking
 
 - [ ] 7. Enhance leaderboard with Reddit user profiles, quiz history, and global rankings
 - [x] 7.1 Add Reddit user profile display to leaderboards
@@ -468,8 +468,8 @@ The phases progress from:
   - Update drawing leaderboard (top 5 per drawing) to show avatars
   - _Requirements: 11.1, 11.2_
 
-- [x] 7.1.1 Update title screen with leaderboard navigation buttons
-  - Add "Leaderboard" button to title screen (navigates to global leaderboard)
+- [x] 7.1.1 Update title screen with ranking navigation buttons
+  - Add "Ranking" button to title screen (navigates to global ranking)
   - Add "My History" button to title screen
   - Size both buttons smaller than primary action buttons (~60-70% size)
   - Position buttons horizontally aligned below main action buttons
@@ -488,39 +488,53 @@ The phases progress from:
   - Show "No quizzes answered yet" empty state
   - _Requirements: 11.3, 11.4, 11.5_
 
-- [x] 7.2.1 Implement global leaderboard (player total score rankings)
-  - Create new GlobalLeaderboardScene in Phaser
+- [x] 7.2.1 Implement global ranking (player total score rankings)
+  - Create new GlobalRanking scene in Phaser
   - Create GET /api/leaderboard/global endpoint
   - Calculate total score for each player (sum of all best quiz scores)
   - Return list with: userId, totalScore, quizCount, rank
   - Fetch Reddit user profiles (avatars) for displayed players
   - Display players sorted by total score (descending)
   - Show player's rank, avatar (32x32px or 40x40px), username (u/username), total score, quiz count
-  - Highlight current user's rank if in leaderboard
+  - Highlight current user's rank if in ranking
   - Support pagination (default: top 50 players, configurable)
   - Implement caching with 5-minute TTL to reduce load
   - Show "No players yet. Be the first!" empty state
   - Add "Back" button to return to title screen
-  - _Requirements: Global leaderboard UI and functionality_
+  - _Requirements: Global ranking UI and functionality_
 
-- [x] 7.3 Add Redis storage for quiz history and global leaderboard
+- [x] 7.3 Add Redis storage for quiz history and global ranking
   - Store user quiz history in Redis sorted set: `user:{userId}:quiz-history`
   - Score: timestamp (for chronological sorting)
   - Member: JSON string with {drawingId, score, baseScore, timeBonus, rank, submittedAt}
   - Update sorted set atomically when score is submitted
   - Implement retrieval with ZREVRANGE for recent-first order
-  - Store global leaderboard in Redis sorted set: `global:leaderboard`
+  - Store global ranking in Redis sorted set: `global:leaderboard`
   - Score: user's total score (sum of all best quiz scores)
   - Member: userId
   - Store player stats in Redis hash: `player:{userId}:stats`
   - Fields: totalScore, quizCount, lastUpdated
-  - Update global leaderboard and player stats atomically in score submission transaction
+  - Update global ranking and player stats atomically in score submission transaction
   - Calculate score difference when updating (subtract old score, add new score)
   - Increment quiz count only for first-time quiz answers (not for improved scores)
-  - Implement cache for global leaderboard: `cache:global-leaderboard:{limit}`
+  - Implement cache for global ranking: `cache:global-leaderboard:{limit}`
   - Cache TTL: 5 minutes
   - Invalidate cache on any score update (DEL cache:global-leaderboard:*)
-  - _Requirements: 11.3, 11.4, Global leaderboard storage_
+  - _Requirements: 11.3, 11.4, Global ranking storage_
+
+- [x] 7.3.1 Rename Global Leaderboard to Global Ranking for better clarity
+  - Rename GlobalLeaderboard.ts file to GlobalRanking.ts
+  - Update class name from `GlobalLeaderboard` to `GlobalRanking`
+  - Update scene name from `'GlobalLeaderboard'` to `'GlobalRanking'`
+  - Update title display text from `'Leaderboard'` to `'Global Ranking'`
+  - Update main.ts import statement and scene registration
+  - Update MainMenu.ts button text from `'Leaderboard'` to `'Ranking'`
+  - Update MainMenu.ts scene.start() call to use `'GlobalRanking'`
+  - Update requirements.md: Change all "global leaderboard" references to "global ranking"
+  - Update requirements.md: Update Requirement 12 and 13 acceptance criteria
+  - Update requirements.md: Change "Leaderboard" button to "Ranking" button
+  - Update tasks.md: Change all "global leaderboard" references to "global ranking" in Phase 7
+  - _Requirements: UI clarity, consistent terminology_
 
 - [ ] 7.4 Test Phase 7 implementation
   - Test Reddit user avatar fetching from API
@@ -542,30 +556,30 @@ The phases progress from:
   - Test "View Leaderboard" button navigation from quiz history
   - Test "Play Another Quiz" button starts new quiz
   - Test "Create Drawing" button navigates to drawing mode
-  - Test GlobalLeaderboardScene displays top players by total score
+  - Test GlobalRanking scene displays top players by total score
   - Verify GET /api/leaderboard/global endpoint returns correct data
-  - Test global leaderboard sorted by total score (descending)
+  - Test global ranking sorted by total score (descending)
   - Verify player's rank, avatar, username, total score, quiz count display correctly
-  - Test current user's rank is highlighted if in leaderboard
-  - Test pagination for global leaderboard (default: top 50)
+  - Test current user's rank is highlighted if in ranking
+  - Test pagination for global ranking (default: top 50)
   - Verify "No players yet. Be the first!" empty state
-  - Test "Back" button navigates to title screen from global leaderboard
+  - Test "Back" button navigates to title screen from global ranking
   - Test "My History" button in LeaderboardScene navigates to QuizHistoryScene
   - Verify "My History" button is positioned correctly (top-right, same row as Back)
   - Test "My History" button on mobile and desktop screen sizes
   - Verify "My History" button doesn't overlap with other UI elements
   - Test Redis sorted set stores quiz history correctly
   - Verify ZREVRANGE retrieves history in correct order
-  - Test global leaderboard Redis sorted set (`global:leaderboard`) stores correctly
+  - Test global ranking Redis sorted set (`global:leaderboard`) stores correctly
   - Test player stats Redis hash (`player:{userId}:stats`) stores correctly
-  - Verify atomic updates include global leaderboard and player stats
+  - Verify atomic updates include global ranking and player stats
   - Test score difference calculation when updating (old score subtracted, new added)
   - Verify quiz count increments only for first-time answers
-  - Test global leaderboard cache (TTL: 5 minutes) works correctly
+  - Test global ranking cache (TTL: 5 minutes) works correctly
   - Verify cache invalidation on score update
   - Test atomic updates when score is submitted
   - Test quiz history persistence across sessions
-  - Verify data consistency between scores, quiz history, and global leaderboard
-  - Test concurrent quiz submissions don't corrupt history or global leaderboard
-  - Test global leaderboard updates correctly when multiple users submit scores
-  - _Requirements: 11.1-11.8, Global leaderboard requirements_
+  - Verify data consistency between scores, quiz history, and global ranking
+  - Test concurrent quiz submissions don't corrupt history or global ranking
+  - Test global ranking updates correctly when multiple users submit scores
+  - _Requirements: 11.1-11.8, Global ranking requirements_

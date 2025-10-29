@@ -171,29 +171,29 @@ What Did I Draw is a drawing quiz game application that runs on Reddit's Devvit 
 
 #### Acceptance Criteria
 
-1. THE Quiz_Interface SHALL display a global leaderboard showing top players ranked by total score
+1. THE Quiz_Interface SHALL display a global ranking showing top players ranked by total score
 2. THE Scoring_System SHALL calculate each player's total score as the sum of their best scores from all unique quizzes answered
-3. THE Quiz_Interface SHALL display Reddit user avatars (32x32px or 40x40px) and usernames (u/username format) in the global leaderboard
-4. THE global leaderboard SHALL show each player's total score, number of quizzes answered, and global rank position
-5. THE Quiz_Interface SHALL highlight the current user's rank if they appear in the global leaderboard
+3. THE Quiz_Interface SHALL display Reddit user avatars (32x32px or 40x40px) and usernames (u/username format) in the global ranking
+4. THE global ranking SHALL show each player's total score, number of quizzes answered, and global rank position
+5. THE Quiz_Interface SHALL highlight the current user's rank if they appear in the global ranking
 6. THE Storage_System SHALL maintain global player statistics including total score, quiz count, and last updated timestamp
-7. THE Storage_System SHALL update the global leaderboard atomically when any user's score changes
-8. THE global leaderboard SHALL support pagination with configurable limits (default: top 50 players)
-9. THE system SHALL implement caching for the global leaderboard with 5-minute TTL to reduce database load
-10. THE system SHALL invalidate the global leaderboard cache whenever any score is updated
-11. THE Quiz_Interface SHALL provide navigation to the global leaderboard from the title screen via a "Leaderboard" button
-12. THE global leaderboard SHALL display an empty state message "No players yet. Be the first!" when no scores exist
-13. THE global leaderboard SHALL provide a "Back" button to return to the title screen
+7. THE Storage_System SHALL update the global ranking atomically when any user's score changes
+8. THE global ranking SHALL support pagination with configurable limits (default: top 50 players)
+9. THE system SHALL implement caching for the global ranking with 5-minute TTL to reduce database load
+10. THE system SHALL invalidate the global ranking cache whenever any score is updated
+11. THE Quiz_Interface SHALL provide navigation to the global ranking from the title screen via a "Ranking" button
+12. THE global ranking SHALL display an empty state message "No players yet. Be the first!" when no scores exist
+13. THE global ranking SHALL provide a "Back" button to return to the title screen
 
 ### Requirement 13
 
-**User Story:** As a player, I want convenient navigation buttons on the title screen, so that I can easily access my quiz history and the global leaderboard.
+**User Story:** As a player, I want convenient navigation buttons on the title screen, so that I can easily access my quiz history and the global ranking.
 
 #### Acceptance Criteria
 
-1. THE title screen SHALL display a "Leaderboard" button that navigates to the global leaderboard
+1. THE title screen SHALL display a "Ranking" button that navigates to the global ranking
 2. THE title screen SHALL display a "My History" button that navigates to the user's quiz history
-3. THE "Leaderboard" and "My History" buttons SHALL be sized smaller than primary action buttons (approximately 60-70% size)
-4. THE "Leaderboard" and "My History" buttons SHALL be horizontally aligned below the main action buttons
+3. THE "Ranking" and "My History" buttons SHALL be sized smaller than primary action buttons (approximately 60-70% size)
+4. THE "Ranking" and "My History" buttons SHALL be horizontally aligned below the main action buttons
 5. THE title screen layout SHALL stack buttons vertically on narrow screens (below 768px) to prevent overlap
 6. THE title screen navigation buttons SHALL remain accessible on all screen sizes without causing horizontal scrolling

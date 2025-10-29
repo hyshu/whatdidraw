@@ -2,13 +2,13 @@ import { Scene } from 'phaser';
 import { GetGlobalLeaderboardResponse, GlobalLeaderboardEntry } from '../../../shared/types/api';
 import { get, ApiError } from '../../utils/api';
 
-export class GlobalLeaderboard extends Scene {
+export class GlobalRanking extends Scene {
   private backButton!: Phaser.GameObjects.Text;
   private titleText!: Phaser.GameObjects.Text;
   private leaderboardContainer!: HTMLDivElement;
 
   constructor() {
-    super('GlobalLeaderboard');
+    super('GlobalRanking');
   }
 
   init() {
@@ -45,9 +45,9 @@ export class GlobalLeaderboard extends Scene {
       .on('pointerdown', () => this.handleBack());
 
     this.titleText = this.add
-      .text(width / 2, 60, 'Leaderboard', {
+      .text(width / 2, 60, 'Global Ranking', {
         fontFamily: 'Arial Black',
-        fontSize: '48px',
+        fontSize: '40px',
         color: '#ffffff',
         stroke: '#000000',
         strokeThickness: 6,

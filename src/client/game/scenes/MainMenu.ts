@@ -224,7 +224,7 @@ export class MainMenu extends Scene {
 
     if (!this.leaderboardButton) {
       this.leaderboardButton = this.add
-        .text(0, 0, 'Leaderboard', {
+        .text(0, 0, 'Ranking', {
           fontFamily: 'Arial Black',
           fontSize: '20px',
           color: '#ffffff',
@@ -242,7 +242,7 @@ export class MainMenu extends Scene {
         .on('pointerover', () => this.leaderboardButton!.setStyle({ backgroundColor: '#a569bd' }))
         .on('pointerout', () => this.leaderboardButton!.setStyle({ backgroundColor: '#9b59b6' }))
         .on('pointerdown', () => {
-          this.scene.start('GlobalLeaderboard');
+          this.scene.start('GlobalRanking');
         });
 
       this.tweens.add({
