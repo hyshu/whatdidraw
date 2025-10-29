@@ -2,6 +2,7 @@ import { Scene } from 'phaser';
 import { Point, Stroke, GetDrawingResponse, SubmitGuessResponse } from '../../../shared/types/api';
 import { get, post, ApiError } from '../../utils/api';
 import { showLoading, hideLoading } from '../../utils/loading';
+import { showToast } from '../utils/toast';
 
 interface DrawingData {
   id: string;
@@ -463,9 +464,9 @@ export class Quiz extends Scene {
       hideLoading();
       console.error('Error submitting guess:', error);
       if (error instanceof ApiError) {
-        alert(error.message);
+        showToast(this, error.message, { type: 'error' });
       } else {
-        alert('Failed to submit guess. Please try again.');
+        showToast(this, 'Failed to submit guess. Please try again.', { type: 'error' });
       }
     }
   }

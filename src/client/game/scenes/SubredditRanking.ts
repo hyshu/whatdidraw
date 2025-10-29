@@ -1,6 +1,7 @@
 import { Scene } from 'phaser';
 import { GetSubredditRankingResponse, SubredditRankingEntry } from '../../../shared/types/api';
 import { get, ApiError } from '../../utils/api';
+import { showToast } from '../utils/toast';
 
 export class SubredditRanking extends Scene {
   private backButton!: Phaser.GameObjects.Text;
@@ -24,7 +25,7 @@ export class SubredditRanking extends Scene {
     this.cameras.main.setBackgroundColor(0x6a4c93);
 
     if (!this.subredditName) {
-      alert('No subreddit name provided');
+      showToast(this, 'No subreddit name provided', { type: 'error' });
       this.scene.start('MainMenu');
       return;
     }

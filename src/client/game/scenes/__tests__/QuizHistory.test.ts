@@ -88,8 +88,8 @@ describe('Phase 7.2: Quiz History Scene', () => {
     it('should display score for each entry', () => {
       const container = scene['historyContainer'];
       const text = container.textContent || '';
-      expect(text).toContain('850 pts');
-      expect(text).toContain('650 pts');
+      expect(text).toContain('850.00 pts');
+      expect(text).toContain('650.00 pts');
     });
 
     it('should display score breakdown', () => {

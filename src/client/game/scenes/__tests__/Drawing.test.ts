@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Drawing } from '../Drawing';
+import * as toastModule from '../../utils/toast';
 
 describe('Phase 1: Drawing Canvas System', () => {
   let scene: Drawing;
@@ -7,6 +8,7 @@ describe('Phase 1: Drawing Canvas System', () => {
   beforeEach(() => {
     scene = new Drawing();
     vi.clearAllMocks();
+    vi.spyOn(toastModule, 'showToast').mockImplementation(() => {});
   });
 
   describe('Canvas Initialization', () => {
@@ -231,7 +233,11 @@ describe('Phase 1: Drawing Canvas System', () => {
 
       scene['handleFinish']();
 
-      expect(global.alert).toHaveBeenCalledWith('Please draw at least 1 stroke before finishing.');
+      expect(toastModule.showToast).toHaveBeenCalledWith(
+        scene,
+        'Please draw at least 1 stroke before finishing.',
+        { type: 'error' }
+      );
     });
 
     it('should show input modal when finishing with strokes', () => {
@@ -329,7 +335,11 @@ describe('Phase 1: Drawing Canvas System', () => {
 
       submitButton?.click();
 
-      expect(global.alert).toHaveBeenCalledWith('Answer is required and must be at least 1 character.');
+      expect(toastModule.showToast).toHaveBeenCalledWith(
+        scene,
+        'Answer is required and must be at least 1 character.',
+        { type: 'error' }
+      );
     });
 
     it('should validate answer max length', () => {
@@ -342,7 +352,11 @@ describe('Phase 1: Drawing Canvas System', () => {
       const submitButton = Array.from(buttons).find(b => b.textContent === 'Submit');
       submitButton?.click();
 
-      expect(global.alert).toHaveBeenCalledWith('Answer must be 50 characters or less.');
+      expect(toastModule.showToast).toHaveBeenCalledWith(
+        scene,
+        'Answer must be 50 characters or less.',
+        { type: 'error' }
+      );
     });
 
     it('should validate hint max length', () => {
@@ -358,7 +372,11 @@ describe('Phase 1: Drawing Canvas System', () => {
       const submitButton = Array.from(buttons).find(b => b.textContent === 'Submit');
       submitButton?.click();
 
-      expect(global.alert).toHaveBeenCalledWith('Hint must be 100 characters or less.');
+      expect(toastModule.showToast).toHaveBeenCalledWith(
+        scene,
+        'Hint must be 100 characters or less.',
+        { type: 'error' }
+      );
     });
 
     it('should accept empty hint as optional', async () => {

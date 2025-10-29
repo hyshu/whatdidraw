@@ -8,6 +8,7 @@ import {
 } from '../../../shared/utils/validation';
 import { post, ApiError } from '../../utils/api';
 import { showLoading, hideLoading } from '../../utils/loading';
+import { showToast } from '../utils/toast';
 
 export class Drawing extends Scene {
   private canvas!: Phaser.GameObjects.Graphics;
@@ -305,7 +306,7 @@ export class Drawing extends Scene {
 
   private handleFinish() {
     if (this.strokes.length === 0) {
-      alert('Please draw at least 1 stroke before finishing.');
+      showToast(this, 'Please draw at least 1 stroke before finishing.', { type: 'error' });
       return;
     }
 
@@ -388,18 +389,18 @@ export class Drawing extends Scene {
       const answer = answerInput.value.trim();
       const answerCharCount = Array.from(answer).length;
       if (answerCharCount === 0) {
-        alert('Answer is required and must be at least 1 character.');
+        showToast(this, 'Answer is required and must be at least 1 character.', { type: 'error' });
         return;
       }
       if (answerCharCount > 50) {
-        alert('Answer must be 50 characters or less.');
+        showToast(this, 'Answer must be 50 characters or less.', { type: 'error' });
         return;
       }
 
       const hint = hintInput.value.trim();
       const hintCharCount = Array.from(hint).length;
       if (hintCharCount > 100) {
-        alert('Hint must be 100 characters or less.');
+        showToast(this, 'Hint must be 100 characters or less.', { type: 'error' });
         return;
       }
 
@@ -457,20 +458,20 @@ export class Drawing extends Scene {
 
     const strokeCountValidation = validateStrokeCount(this.strokes.length);
     if (!strokeCountValidation.isValid) {
-      alert(strokeCountValidation.errors.join('\n'));
+      showToast(this, strokeCountValidation.errors.join('\n'), { type: 'error' });
       return;
     }
 
     const answerValidation = validateAnswer(sanitizedAnswer);
     if (!answerValidation.isValid) {
-      alert(answerValidation.errors.join('\n'));
+      showToast(this, answerValidation.errors.join('\n'), { type: 'error' });
       return;
     }
 
     if (sanitizedHint.length > 0) {
       const hintValidation = validateHint(sanitizedHint);
       if (!hintValidation.isValid) {
-        alert(hintValidation.errors.join('\n'));
+        showToast(this, hintValidation.errors.join('\n'), { type: 'error' });
         return;
       }
     }
@@ -500,9 +501,9 @@ export class Drawing extends Scene {
       hideLoading();
       console.error('Error saving drawing:', error);
       if (error instanceof ApiError) {
-        alert(error.message);
+        showToast(this, error.message, { type: 'error' });
       } else {
-        alert('Failed to save drawing. Please try again.');
+        showToast(this, 'Failed to save drawing. Please try again.', { type: 'error' });
       }
     }
   }
@@ -601,7 +602,7 @@ export class Drawing extends Scene {
 
   private async handleShareToSubreddit() {
     if (!this.savedDrawingId) {
-      alert('No drawing ID available');
+      showToast(this, 'No drawing ID available', { type: 'error' });
       return;
     }
 
@@ -620,16 +621,16 @@ export class Drawing extends Scene {
 
       // Display the subreddit name from the response
       const subredditName = (result as any).subredditName || 'this subreddit';
-      alert(`Successfully shared to r/${subredditName}!`);
+      showToast(this, `Successfully shared to r/${subredditName}!`, { type: 'success' });
       this.cleanup();
       this.scene.start('MainMenu');
     } catch (error) {
       hideLoading();
       console.error('Error sharing to subreddit:', error);
       if (error instanceof ApiError) {
-        alert(`Failed to share: ${error.message}`);
+        showToast(this, `Failed to share: ${error.message}`, { type: 'error' });
       } else {
-        alert('Failed to share to subreddit. Please try again.');
+        showToast(this, 'Failed to share to subreddit. Please try again.', { type: 'error' });
       }
     }
   }
