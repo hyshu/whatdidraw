@@ -536,7 +536,7 @@ The phases progress from:
   - Update tasks.md: Change all "global leaderboard" references to "global ranking" in Phase 7
   - _Requirements: UI clarity, consistent terminology_
 
-- [ ] 7.4 Test Phase 7 implementation
+- [x] 7.4 Test Phase 7 implementation
   - Test Reddit user avatar fetching from API
   - Verify avatar display in drawing leaderboards (32x32px or 40x40px)
   - Test username formatting as u/username

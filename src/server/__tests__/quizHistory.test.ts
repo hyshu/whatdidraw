@@ -336,4 +336,310 @@ describe('Quiz History Tests', () => {
       expect(history.entries[0].rank).toBeLessThanOrEqual(5);
     });
   });
+
+  describe('Phase 7.3: Global Ranking Storage', () => {
+    it('should store global ranking in Redis sorted set', async () => {
+      const drawing: Omit<Drawing, 'id'> = {
+        createdBy: 'test-creator',
+        createdAt: Date.now(),
+        answer: 'Cat',
+        strokes: [],
+        totalStrokes: 10,
+      };
+
+      const drawingId = await storage.saveDrawing(drawing);
+
+      const score: Omit<Score, 'id'> = {
+        drawingId,
+        userId: 'player1',
+        score: 850,
+        baseScore: 700,
+        timeBonus: 150,
+        elapsedTime: 45,
+        viewedStrokes: 3,
+        submittedAt: Date.now(),
+      };
+
+      await storage.saveScore(score);
+
+      const globalLeaderboardKey = 'global:leaderboard';
+      const leaderboardItems = mockRedis._sortedSets.get(globalLeaderboardKey);
+
+      expect(leaderboardItems).toBeDefined();
+      expect(leaderboardItems?.some(item => item.member === 'player1')).toBe(true);
+    });
+
+    it('should store player stats in Redis hash', async () => {
+      const drawing: Omit<Drawing, 'id'> = {
+        createdBy: 'test-creator',
+        createdAt: Date.now(),
+        answer: 'Cat',
+        strokes: [],
+        totalStrokes: 10,
+      };
+
+      const drawingId = await storage.saveDrawing(drawing);
+
+      const score: Omit<Score, 'id'> = {
+        drawingId,
+        userId: 'player1',
+        score: 850,
+        baseScore: 700,
+        timeBonus: 150,
+        elapsedTime: 45,
+        viewedStrokes: 3,
+        submittedAt: Date.now(),
+      };
+
+      await storage.saveScore(score);
+
+      const playerStatsKey = 'player:player1:stats';
+      const playerStats = mockRedis._store.get(playerStatsKey);
+
+      expect(playerStats).toBeDefined();
+      expect(playerStats.totalScore).toBe('850');
+      expect(playerStats.quizCount).toBe('1');
+    });
+
+    it('should update global ranking atomically with score submission', async () => {
+      const drawing: Omit<Drawing, 'id'> = {
+        createdBy: 'test-creator',
+        createdAt: Date.now(),
+        answer: 'Cat',
+        strokes: [],
+        totalStrokes: 10,
+      };
+
+      const drawingId = await storage.saveDrawing(drawing);
+
+      await storage.saveScore({
+        drawingId,
+        userId: 'player1',
+        score: 500,
+        baseScore: 400,
+        timeBonus: 100,
+        elapsedTime: 50,
+        viewedStrokes: 6,
+        submittedAt: Date.now(),
+      });
+
+      let globalLeaderboard = mockRedis._sortedSets.get('global:leaderboard');
+      let player1Entry = globalLeaderboard?.find(item => item.member === 'player1');
+      expect(player1Entry?.score).toBe(500);
+
+      await storage.saveScore({
+        drawingId,
+        userId: 'player1',
+        score: 1000,
+        baseScore: 700,
+        timeBonus: 300,
+        elapsedTime: 30,
+        viewedStrokes: 3,
+        submittedAt: Date.now() + 1000,
+      });
+
+      globalLeaderboard = mockRedis._sortedSets.get('global:leaderboard');
+      player1Entry = globalLeaderboard?.find(item => item.member === 'player1');
+      expect(player1Entry?.score).toBe(1000);
+    });
+
+    it('should calculate score difference when updating', async () => {
+      const drawing: Omit<Drawing, 'id'> = {
+        createdBy: 'test-creator',
+        createdAt: Date.now(),
+        answer: 'Cat',
+        strokes: [],
+        totalStrokes: 10,
+      };
+
+      const drawingId = await storage.saveDrawing(drawing);
+
+      await storage.saveScore({
+        drawingId,
+        userId: 'player1',
+        score: 500,
+        baseScore: 400,
+        timeBonus: 100,
+        elapsedTime: 50,
+        viewedStrokes: 6,
+        submittedAt: Date.now(),
+      });
+
+      await storage.saveScore({
+        drawingId,
+        userId: 'player1',
+        score: 1000,
+        baseScore: 700,
+        timeBonus: 300,
+        elapsedTime: 30,
+        viewedStrokes: 3,
+        submittedAt: Date.now() + 1000,
+      });
+
+      const playerStats = mockRedis._store.get('player:player1:stats');
+      expect(playerStats.totalScore).toBe('1000');
+    });
+
+    it('should increment quiz count only for first-time quiz answers', async () => {
+      const drawing: Omit<Drawing, 'id'> = {
+        createdBy: 'test-creator',
+        createdAt: Date.now(),
+        answer: 'Cat',
+        strokes: [],
+        totalStrokes: 10,
+      };
+
+      const drawingId = await storage.saveDrawing(drawing);
+
+      await storage.saveScore({
+        drawingId,
+        userId: 'player1',
+        score: 500,
+        baseScore: 400,
+        timeBonus: 100,
+        elapsedTime: 50,
+        viewedStrokes: 6,
+        submittedAt: Date.now(),
+      });
+
+      let playerStats = mockRedis._store.get('player:player1:stats');
+      expect(playerStats.quizCount).toBe('1');
+
+      await storage.saveScore({
+        drawingId,
+        userId: 'player1',
+        score: 1000,
+        baseScore: 700,
+        timeBonus: 300,
+        elapsedTime: 30,
+        viewedStrokes: 3,
+        submittedAt: Date.now() + 1000,
+      });
+
+      playerStats = mockRedis._store.get('player:player1:stats');
+      expect(playerStats.quizCount).toBe('1');
+    });
+
+    it('should support multiple players in global ranking', async () => {
+      const drawing: Omit<Drawing, 'id'> = {
+        createdBy: 'test-creator',
+        createdAt: Date.now(),
+        answer: 'Cat',
+        strokes: [],
+        totalStrokes: 10,
+      };
+
+      const drawingId = await storage.saveDrawing(drawing);
+
+      for (let i = 0; i < 3; i++) {
+        await storage.saveScore({
+          drawingId,
+          userId: `player${i}`,
+          score: 1000 - i * 100,
+          baseScore: 700 - i * 50,
+          timeBonus: 300 - i * 50,
+          elapsedTime: 30 + i * 10,
+          viewedStrokes: 3 + i,
+          submittedAt: Date.now() + i * 1000,
+        });
+      }
+
+      const globalLeaderboard = mockRedis._sortedSets.get('global:leaderboard');
+      expect(globalLeaderboard?.length).toBe(3);
+      expect(globalLeaderboard?.[0].member).toBe('player0');
+      expect(globalLeaderboard?.[0].score).toBe(1000);
+    });
+
+    it('should retrieve global leaderboard with pagination', async () => {
+      const drawing: Omit<Drawing, 'id'> = {
+        createdBy: 'test-creator',
+        createdAt: Date.now(),
+        answer: 'Cat',
+        strokes: [],
+        totalStrokes: 10,
+      };
+
+      const drawingId = await storage.saveDrawing(drawing);
+
+      for (let i = 0; i < 60; i++) {
+        await storage.saveScore({
+          drawingId,
+          userId: `player${i}`,
+          score: 1000 - i * 10,
+          baseScore: 700 - i * 5,
+          timeBonus: 300 - i * 5,
+          elapsedTime: 30 + i,
+          viewedStrokes: 3,
+          submittedAt: Date.now() + i * 100,
+        });
+      }
+
+      const globalLeaderboard50 = await storage.getGlobalRanking(50);
+      expect(globalLeaderboard50.entries.length).toBeLessThanOrEqual(50);
+
+      const globalLeaderboard10 = await storage.getGlobalRanking(10);
+      expect(globalLeaderboard10.entries.length).toBeLessThanOrEqual(10);
+    });
+
+    it('should include all required fields in global leaderboard entry', async () => {
+      const drawing: Omit<Drawing, 'id'> = {
+        createdBy: 'test-creator',
+        createdAt: Date.now(),
+        answer: 'Cat',
+        strokes: [],
+        totalStrokes: 10,
+      };
+
+      const drawingId = await storage.saveDrawing(drawing);
+
+      await storage.saveScore({
+        drawingId,
+        userId: 'player1',
+        score: 850,
+        baseScore: 700,
+        timeBonus: 150,
+        elapsedTime: 45,
+        viewedStrokes: 3,
+        submittedAt: Date.now(),
+      });
+
+      const globalLeaderboard = await storage.getGlobalRanking(50);
+      const player1Entry = globalLeaderboard.entries.find(e => e.userId === 'player1');
+
+      expect(player1Entry).toBeDefined();
+      expect(player1Entry?.userId).toBe('player1');
+      expect(player1Entry?.totalScore).toBe(850);
+      expect(player1Entry?.quizCount).toBe(1);
+      expect(player1Entry?.rank).toBeDefined();
+      expect(player1Entry?.lastUpdated).toBeDefined();
+    });
+
+    it('should handle concurrent score submissions for global ranking', async () => {
+      const drawing: Omit<Drawing, 'id'> = {
+        createdBy: 'test-creator',
+        createdAt: Date.now(),
+        answer: 'Cat',
+        strokes: [],
+        totalStrokes: 10,
+      };
+
+      const drawingId = await storage.saveDrawing(drawing);
+
+      const scores = Array.from({ length: 5 }, (_, i) => ({
+        drawingId,
+        userId: `player${i}`,
+        score: 1000 - i * 100,
+        baseScore: 700 - i * 50,
+        timeBonus: 300 - i * 50,
+        elapsedTime: 30 + i * 10,
+        viewedStrokes: 3 + i,
+        submittedAt: Date.now() + i * 100,
+      }));
+
+      await Promise.all(scores.map(score => storage.saveScore(score)));
+
+      const globalLeaderboard = mockRedis._sortedSets.get('global:leaderboard');
+      expect(globalLeaderboard?.length).toBe(5);
+    });
+  });
 });

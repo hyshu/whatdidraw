@@ -71,6 +71,53 @@ export class MemoryStorage {
   getTopScores(drawingId: string, limit: number = 5): Score[] {
     return this.getScoresByDrawing(drawingId).slice(0, limit);
   }
+
+  getGlobalRanking(limit: number = 50): { entries: Array<{ userId: string; totalScore: number; quizCount: number; rank: number; lastUpdated: number }> } {
+    const playerScores = new Map<string, { totalScore: number; quizzes: Set<string>; lastUpdated: number }>();
+
+    for (const score of this.scores.values()) {
+      const existing = playerScores.get(score.userId);
+      if (existing) {
+        const existingScoreForDrawing = Array.from(this.scores.values()).find(
+          s => s.userId === score.userId && s.drawingId === score.drawingId && s.id !== score.id
+        );
+
+        if (!existingScoreForDrawing || existingScoreForDrawing.score < score.score) {
+          if (existingScoreForDrawing) {
+            existing.totalScore = existing.totalScore - existingScoreForDrawing.score + score.score;
+          } else {
+            existing.totalScore += score.score;
+          }
+        }
+
+        existing.quizzes.add(score.drawingId);
+        existing.lastUpdated = Math.max(existing.lastUpdated, score.submittedAt);
+      } else {
+        playerScores.set(score.userId, {
+          totalScore: score.score,
+          quizzes: new Set([score.drawingId]),
+          lastUpdated: score.submittedAt,
+        });
+      }
+    }
+
+    const entries = Array.from(playerScores.entries())
+      .map(([userId, data]) => ({
+        userId,
+        totalScore: data.totalScore,
+        quizCount: data.quizzes.size,
+        lastUpdated: data.lastUpdated,
+        rank: 0,
+      }))
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .slice(0, limit);
+
+    entries.forEach((entry, index) => {
+      entry.rank = index + 1;
+    });
+
+    return { entries };
+  }
 }
 
 export const storage = new MemoryStorage();

@@ -139,6 +139,21 @@ const mockPhaser = {
           textObj.y = newY;
           return textObj;
         });
+        textObj.setAlpha = vi.fn(function(alpha) {
+          textObj.alpha = alpha;
+          return textObj;
+        });
+        textObj.setScale = vi.fn(function(scale) {
+          textObj.scale = scale;
+          return textObj;
+        });
+        textObj.setAngle = vi.fn(function(angle) {
+          textObj.angle = angle;
+          return textObj;
+        });
+        textObj.alpha = 1;
+        textObj.scale = 1;
+        textObj.angle = 0;
         return textObj;
       }),
       graphics: vi.fn(() => ({
@@ -160,6 +175,17 @@ const mockPhaser = {
     };
     input: any = {
       on: vi.fn(),
+    };
+    tweens: any = {
+      add: vi.fn((config: any) => {
+        if (config.onComplete) {
+          config.onComplete();
+        }
+        return {};
+      }),
+    };
+    registry: any = {
+      get: vi.fn(() => 'test-user'),
     };
   },
 };

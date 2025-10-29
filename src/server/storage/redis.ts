@@ -335,4 +335,17 @@ export class RedisStorage {
 
     return { entries, total, ...(currentUserRank !== undefined && { currentUserRank }) };
   }
+
+  async getGlobalRanking(limit: number = 50): Promise<{
+    entries: Array<{
+      userId: string;
+      totalScore: number;
+      quizCount: number;
+      lastUpdated: number;
+      rank: number;
+    }>;
+  }> {
+    const result = await this.getGlobalLeaderboard(limit);
+    return { entries: result.entries };
+  }
 }
