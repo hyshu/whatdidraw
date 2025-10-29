@@ -520,7 +520,7 @@ router.post<{}, any, { drawingId: string; postTitle?: string }>(
             appDisplayName: 'What Did I Draw?',
             backgroundUri: 'splash.png',
             buttonLabel: 'Play Quiz',
-            description: `Drawing Quiz: ${drawing.answer}`,
+            description: 'Can you guess what this drawing is?',
             heading: title,
             appIconUri: 'icon.png',
           },
