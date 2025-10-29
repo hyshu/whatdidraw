@@ -9,11 +9,11 @@ export const createPost = async () => {
   return await reddit.submitCustomPost({
     splash: {
       appDisplayName: 'What Did I Draw?',
-      backgroundUri: 'default-splash.png',
+      backgroundUri: 'splash.png',
       buttonLabel: 'Start Playing',
-      description: 'Can you guess what was drawn? Test your skills in this fun drawing quiz game!',
+      description: 'Drawing Quiz Game',
       heading: 'What Did I Draw?',
-      appIconUri: 'default-icon.png',
+      appIconUri: 'icon.png',
     },
     postData: {
       gameState: 'menu',
