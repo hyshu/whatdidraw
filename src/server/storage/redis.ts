@@ -104,6 +104,7 @@ export class RedisStorage {
       try {
         const scoreKey = `scores:${score.drawingId}:${score.userId}`;
         const leaderboardKey = `leaderboard:${score.drawingId}`;
+        const quizHistoryKey = `user:${score.userId}:quiz-history`;
 
         const existingScoreData = await this.redis.hGetAll(scoreKey);
         const existingScore = existingScoreData && existingScoreData.score
@@ -114,7 +115,7 @@ export class RedisStorage {
           return scoreKey;
         }
 
-        const txn = await this.redis.watch(scoreKey, leaderboardKey);
+        const txn = await this.redis.watch(scoreKey, leaderboardKey, quizHistoryKey);
 
         await txn.multi();
 
@@ -134,7 +135,20 @@ export class RedisStorage {
           score: score.score,
         });
 
-        await txn.zRemRangeByRank(leaderboardKey, 0, -6);
+        await txn.zRemRangeByRank(leaderboardKey, 5, -1);
+
+        const historyEntry = JSON.stringify({
+          drawingId: score.drawingId,
+          score: score.score,
+          baseScore: score.baseScore,
+          timeBonus: score.timeBonus,
+          submittedAt: score.submittedAt,
+        });
+
+        await txn.zAdd(quizHistoryKey, {
+          member: historyEntry,
+          score: score.submittedAt,
+        });
 
         const result = await txn.exec();
 
@@ -193,5 +207,54 @@ export class RedisStorage {
   async getTopScores(drawingId: string, limit: number = 5): Promise<Score[]> {
     const scores = await this.getScoresByDrawing(drawingId);
     return scores.slice(0, limit);
+  }
+
+  async getQuizHistory(userId: string, page: number = 1, limit: number = 10): Promise<{
+    entries: Array<{
+      drawingId: string;
+      drawingAnswer: string;
+      score: number;
+      rank: number | null;
+      submittedAt: number;
+      baseScore: number;
+      timeBonus: number;
+    }>;
+    total: number;
+  }> {
+    const quizHistoryKey = `user:${userId}:quiz-history`;
+
+    const total = await this.redis.zCard(quizHistoryKey) || 0;
+
+    const start = (page - 1) * limit;
+    const end = start + limit - 1;
+
+    const historyItems = await this.redis.zRange(quizHistoryKey, start, end, { by: 'rank', reverse: true });
+
+    if (!historyItems || historyItems.length === 0) {
+      return { entries: [], total };
+    }
+
+    const entries = await Promise.all(
+      historyItems.map(async (item: { member: string; score: number }) => {
+        const entryData = JSON.parse(item.member);
+        const drawingMeta = await this.redis.hGetAll(`drawings:meta:${entryData.drawingId}`);
+
+        const leaderboardKey = `leaderboard:${entryData.drawingId}`;
+        const rank = await this.redis.zRevRank(leaderboardKey, userId);
+        const rankValue = rank !== null && rank < 5 ? rank + 1 : null;
+
+        return {
+          drawingId: entryData.drawingId,
+          drawingAnswer: (drawingMeta?.answer as string) || 'Unknown',
+          score: entryData.score,
+          rank: rankValue,
+          submittedAt: entryData.submittedAt,
+          baseScore: entryData.baseScore,
+          timeBonus: entryData.timeBonus,
+        };
+      })
+    );
+
+    return { entries, total };
   }
 }

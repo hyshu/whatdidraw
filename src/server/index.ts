@@ -333,6 +333,59 @@ router.get<{ userId: string }, UserProfile | { status: string; message: string }
   }
 );
 
+router.get<{ userId: string }, { status: string; message: string }>(
+  '/api/user/:userId/quiz-history',
+  async (req, res): Promise<void> => {
+    try {
+      const { userId } = req.params;
+      const { page = '1', limit = '10' } = req.query;
+
+      if (!userId) {
+        res.status(400).json({
+          status: 'error',
+          message: 'User ID is required'
+        });
+        return;
+      }
+
+      const pageNum = parseInt(page as string, 10);
+      const limitNum = parseInt(limit as string, 10);
+
+      if (isNaN(pageNum) || pageNum < 1) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Invalid page number'
+        });
+        return;
+      }
+
+      if (isNaN(limitNum) || limitNum < 1 || limitNum > 50) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Invalid limit (must be 1-50)'
+        });
+        return;
+      }
+
+      const result = await storage.getQuizHistory(userId, pageNum, limitNum);
+
+      res.json({
+        type: 'getQuizHistory',
+        entries: result.entries,
+        total: result.total,
+        page: pageNum,
+        limit: limitNum,
+      });
+    } catch (error) {
+      console.error('Error getting quiz history:', error);
+      res.status(400).json({
+        status: 'error',
+        message: 'Failed to get quiz history'
+      });
+    }
+  }
+);
+
 router.post('/internal/init-redis', async (_req, res): Promise<void> => {
   try {
     console.log('Starting Redis initialization...');

@@ -477,7 +477,7 @@ The phases progress from:
   - Test button layout on mobile and desktop screen sizes
   - _Requirements: Title screen UI, navigation_
 
-- [ ] 7.2 Implement quiz history leaderboard (user's personal quiz history)
+- [x] 7.2 Implement quiz history leaderboard (user's personal quiz history)
   - Create new QuizHistoryScene in Phaser
   - Create GET /api/user/:userId/quiz-history endpoint
   - Return list of all quizzes user has answered with scores
@@ -488,7 +488,7 @@ The phases progress from:
   - Show "No quizzes answered yet" empty state
   - _Requirements: 11.3, 11.4, 11.5_
 
-- [ ] 7.2.1 Implement global leaderboard (player total score rankings)
+- [x] 7.2.1 Implement global leaderboard (player total score rankings)
   - Create new GlobalLeaderboardScene in Phaser
   - Create GET /api/leaderboard/global endpoint
   - Calculate total score for each player (sum of all best quiz scores)

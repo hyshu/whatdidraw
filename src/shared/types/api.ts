@@ -75,3 +75,21 @@ export interface UserProfile {
   avatarUrl?: string;
   displayName: string;
 }
+
+export interface QuizHistoryEntry {
+  drawingId: string;
+  drawingAnswer: string;
+  score: number;
+  rank: number | null;
+  submittedAt: number;
+  baseScore: number;
+  timeBonus: number;
+}
+
+export type GetQuizHistoryResponse = {
+  type: 'getQuizHistory';
+  entries: QuizHistoryEntry[];
+  total: number;
+  page: number;
+  limit: number;
+};
