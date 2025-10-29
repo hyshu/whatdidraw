@@ -35,8 +35,9 @@ export interface Score {
 export type InitResponse = {
   type: 'init';
   postId: string;
-  gameState: 'menu' | 'drawing' | 'guessing' | 'results';
+  gameState: 'menu' | 'drawing' | 'quiz' | 'results';
   userId: string; // Reddit username
+  drawingId?: string; // Optional drawing ID from post data
 };
 
 export type GetDrawingResponse = {
@@ -85,6 +86,7 @@ export interface QuizHistoryEntry {
   submittedAt: number;
   baseScore: number;
   timeBonus: number;
+  subredditName?: string;
 }
 
 export type GetQuizHistoryResponse = {
@@ -109,4 +111,56 @@ export type GetGlobalLeaderboardResponse = {
   entries: GlobalLeaderboardEntry[];
   total: number;
   currentUserRank?: number;
+};
+
+export interface SubredditPost {
+  postId: string;
+  drawingId: string;
+  subredditName: string;
+  postUrl: string;
+  postTitle: string;
+  postedAt: number;
+  postedBy: string;
+}
+
+export type ShareToSubredditResponse = {
+  type: 'shareToSubreddit';
+  postId: string;
+  postUrl: string;
+  subredditName: string;
+  success: boolean;
+};
+
+export interface SubredditRankingEntry {
+  userId: string;
+  subredditName: string;
+  totalScore: number;
+  quizCount: number;
+  rank: number;
+  lastUpdated: number;
+  avatarUrl?: string;
+}
+
+export type GetSubredditRankingResponse = {
+  type: 'getSubredditRanking';
+  entries: SubredditRankingEntry[];
+  total: number;
+  currentUserRank?: number;
+};
+
+export interface SubredditQuizMetadata {
+  drawingId: string;
+  subredditName: string;
+  postId: string;
+  answer: string;
+  createdBy: string;
+  postedAt: number;
+}
+
+export type GetSubredditQuizzesResponse = {
+  type: 'getSubredditQuizzes';
+  quizzes: SubredditQuizMetadata[];
+  total: number;
+  page: number;
+  limit: number;
 };

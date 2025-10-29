@@ -374,6 +374,14 @@ describe('Phase 1: Drawing Canvas System', () => {
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
+      // ShareModal should be displayed after successful save
+      expect(scene['shareModal']).not.toBeNull();
+
+      // Click "Skip and Return to Menu" button
+      const shareButtons = scene['shareModal']!.querySelectorAll('button');
+      const skipButton = Array.from(shareButtons).find(b => b.textContent === 'Skip and Return to Menu');
+      skipButton?.click();
+
       expect(scene.scene.start).toHaveBeenCalledWith('MainMenu');
     });
 
@@ -438,6 +446,14 @@ describe('Phase 1: Drawing Canvas System', () => {
 
       await new Promise(resolve => setTimeout(resolve, 100));
 
+      // ShareModal should be displayed after successful save
+      expect(scene['shareModal']).not.toBeNull();
+
+      // Click "Skip and Return to Menu" button
+      const shareButtons = scene['shareModal']!.querySelectorAll('button');
+      const skipButton = Array.from(shareButtons).find(b => b.textContent === 'Skip and Return to Menu');
+      skipButton?.click();
+
       expect(scene.scene.start).toHaveBeenCalledWith('MainMenu');
     });
 
@@ -467,6 +483,14 @@ describe('Phase 1: Drawing Canvas System', () => {
       submitButton?.click();
 
       await new Promise(resolve => setTimeout(resolve, 100));
+
+      // ShareModal should be displayed after successful save
+      expect(scene['shareModal']).not.toBeNull();
+
+      // Click "Skip and Return to Menu" button to trigger cleanup
+      const shareButtons = scene['shareModal']!.querySelectorAll('button');
+      const skipButton = Array.from(shareButtons).find(b => b.textContent === 'Skip and Return to Menu');
+      skipButton?.click();
 
       expect(scene['strokes']).toHaveLength(0);
     });

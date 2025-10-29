@@ -44,11 +44,13 @@ export class Quiz extends Scene {
   private inputContainer: HTMLDivElement | null = null;
   private scoreDisplay: HTMLDivElement | null = null;
 
+  private specificDrawingId?: string; // Store drawing ID passed from scene data
+
   constructor() {
     super('Quiz');
   }
 
-  init(): void {
+  init(data?: { drawingId?: string }): void {
     // Reset all state variables to prevent state persistence between quiz sessions
     this.drawingData = null;
     this.completedStrokes = [];
@@ -67,6 +69,9 @@ export class Quiz extends Scene {
     this.inputContainer = null;
     this.scoreDisplay = null;
 
+    // Store specific drawing ID if provided
+    this.specificDrawingId = data?.drawingId ?? undefined;
+
     // Clear canvas graphics if it exists
     if (this.canvas) {
       this.canvas.clear();
@@ -79,7 +84,13 @@ export class Quiz extends Scene {
     showLoading('Loading quiz...');
 
     try {
-      const result = await get<GetDrawingResponse>('/api/drawing');
+      // Build API URL with drawingId if specified
+      let apiUrl = '/api/drawing';
+      if (this.specificDrawingId) {
+        apiUrl += `?drawingId=${encodeURIComponent(this.specificDrawingId)}`;
+      }
+
+      const result = await get<GetDrawingResponse>(apiUrl);
 
       if (!result.drawing) {
         hideLoading();

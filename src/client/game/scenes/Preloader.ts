@@ -25,14 +25,21 @@ export class Preloader extends Scene {
 
   async create() {
     try {
-      // Fetch userId from server
+      // Fetch initialization data from server
       const initData = await get<InitResponse>('/api/init');
-      // Store userId in registry for access by other scenes
+
+      // Store data in registry for access by other scenes
       this.registry.set('userId', initData.userId);
+      this.registry.set('gameState', initData.gameState);
+
+      if (initData.drawingId) {
+        this.registry.set('drawingId', initData.drawingId);
+      }
     } catch (error) {
       console.error('Error fetching init data:', error);
-      // Fallback to anonymous if init fails
+      // Fallback to defaults if init fails
       this.registry.set('userId', 'anonymous');
+      this.registry.set('gameState', 'menu');
     }
 
     this.scene.start('MainMenu');

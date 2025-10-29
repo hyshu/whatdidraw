@@ -646,7 +646,7 @@ The phases progress from:
   - Display subreddit icon/badge next to quiz entry in history
   - _Requirements: 15.8_
 
-- [ ] 8.6 Test Phase 8 implementation
+- [x] 8.6 Test Phase 8 implementation
   - Test "Share to Subreddit" button appears after drawing save
   - Verify subreddit selection modal displays available subreddits
   - Test custom post title input (optional field)

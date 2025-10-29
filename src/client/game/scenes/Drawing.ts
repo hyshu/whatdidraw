@@ -44,6 +44,8 @@ export class Drawing extends Scene {
   private canvasSize: number = 360;
 
   private inputModal: HTMLDivElement | null = null;
+  private shareModal: HTMLDivElement | null = null;
+  private savedDrawingId: string | null = null;
 
   constructor() {
     super('Drawing');
@@ -492,8 +494,8 @@ export class Drawing extends Scene {
       hideLoading();
 
       this.hideInputModal();
-      this.cleanup();
-      this.scene.start('MainMenu');
+      this.savedDrawingId = result.drawingId;
+      this.showShareModal();
     } catch (error) {
       hideLoading();
       console.error('Error saving drawing:', error);
@@ -518,10 +520,126 @@ export class Drawing extends Scene {
     this.undoButton.setPosition(width - 15, this.canvasY + this.canvasSize + 10);
   }
 
+  private showShareModal() {
+    this.shareModal = document.createElement('div');
+    this.shareModal.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+      z-index: 1000;
+      max-width: 400px;
+      width: 90%;
+    `;
+
+    const title = document.createElement('h2');
+    title.textContent = 'Drawing Saved!';
+    title.style.cssText = 'margin: 0 0 20px 0; color: #27ae60; font-size: 24px;';
+
+    const message = document.createElement('p');
+    message.textContent = 'Your drawing has been saved successfully. Would you like to share it to a subreddit?';
+    message.style.cssText = 'margin-bottom: 20px; color: #555;';
+
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = 'display: flex; gap: 10px; flex-direction: column;';
+
+    const shareButton = document.createElement('button');
+    shareButton.textContent = 'Share to Subreddit';
+    shareButton.style.cssText = 'padding: 12px; background: #ff4500; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold;';
+    shareButton.onmouseover = () => shareButton.style.background = '#ff5722';
+    shareButton.onmouseout = () => shareButton.style.background = '#ff4500';
+    shareButton.onclick = () => this.handleShareToSubreddit();
+
+    const skipButton = document.createElement('button');
+    skipButton.textContent = 'Skip and Return to Menu';
+    skipButton.style.cssText = 'padding: 12px; background: #7f8c8d; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold;';
+    skipButton.onmouseover = () => skipButton.style.background = '#95a5a6';
+    skipButton.onmouseout = () => skipButton.style.background = '#7f8c8d';
+    skipButton.onclick = () => {
+      this.hideShareModal();
+      this.cleanup();
+      this.scene.start('MainMenu');
+    };
+
+    buttonContainer.appendChild(shareButton);
+    buttonContainer.appendChild(skipButton);
+
+    this.shareModal.appendChild(title);
+    this.shareModal.appendChild(message);
+    this.shareModal.appendChild(buttonContainer);
+
+    document.body.appendChild(this.shareModal);
+
+    const backdrop = document.createElement('div');
+    backdrop.id = 'share-modal-backdrop';
+    backdrop.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+    `;
+    document.body.appendChild(backdrop);
+  }
+
+  private hideShareModal() {
+    if (this.shareModal) {
+      this.shareModal.remove();
+      this.shareModal = null;
+    }
+    const backdrop = document.getElementById('share-modal-backdrop');
+    if (backdrop) {
+      backdrop.remove();
+    }
+  }
+
+  private async handleShareToSubreddit() {
+    if (!this.savedDrawingId) {
+      alert('No drawing ID available');
+      return;
+    }
+
+    const postTitle = prompt('Enter post title (optional):', 'Can you guess what I drew?') || 'Can you guess what I drew?';
+
+    showLoading('Sharing to subreddit...');
+
+    try {
+      const result = await post('/api/subreddit/post', {
+        drawingId: this.savedDrawingId,
+        postTitle,
+      });
+
+      hideLoading();
+      this.hideShareModal();
+
+      // Display the subreddit name from the response
+      const subredditName = (result as any).subredditName || 'this subreddit';
+      alert(`Successfully shared to r/${subredditName}!`);
+      this.cleanup();
+      this.scene.start('MainMenu');
+    } catch (error) {
+      hideLoading();
+      console.error('Error sharing to subreddit:', error);
+      if (error instanceof ApiError) {
+        alert(`Failed to share: ${error.message}`);
+      } else {
+        alert('Failed to share to subreddit. Please try again.');
+      }
+    }
+  }
+
   private cleanup() {
     this.hideInputModal();
+    this.hideShareModal();
     this.strokes = [];
     this.currentStroke = [];
+    this.savedDrawingId = null;
   }
 
   destroy() {

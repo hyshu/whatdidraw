@@ -94,7 +94,7 @@ export class RedisStorage {
     return allDrawings[randomIndex];
   }
 
-  async saveScore(score: Omit<Score, 'id'>): Promise<string> {
+  async saveScore(score: Omit<Score, 'id'>, subredditName?: string): Promise<string> {
     const maxRetries = 3;
     let attempt = 0;
 
@@ -107,6 +107,16 @@ export class RedisStorage {
         const quizHistoryKey = `user:${score.userId}:quiz-history`;
         const playerStatsKey = `player:${score.userId}:stats`;
         const globalLeaderboardKey = `global:leaderboard`;
+
+        const watchKeys = [scoreKey, leaderboardKey, quizHistoryKey, playerStatsKey, globalLeaderboardKey];
+
+        let subredditLeaderboardKey: string | undefined;
+        let subredditPlayerStatsKey: string | undefined;
+        if (subredditName) {
+          subredditLeaderboardKey = `subreddit:${subredditName}:leaderboard`;
+          subredditPlayerStatsKey = `subreddit:${subredditName}:player:${score.userId}`;
+          watchKeys.push(subredditLeaderboardKey, subredditPlayerStatsKey);
+        }
 
         const existingScoreData = await this.redis.hGetAll(scoreKey);
         const existingScore = existingScoreData && existingScoreData.score
@@ -129,7 +139,24 @@ export class RedisStorage {
         const newTotalScore = currentTotalScore + scoreDifference;
         const newQuizCount = existingScore === null ? currentQuizCount + 1 : currentQuizCount;
 
-        const txn = await this.redis.watch(scoreKey, leaderboardKey, quizHistoryKey, playerStatsKey, globalLeaderboardKey);
+        let currentSubredditTotalScore = 0;
+        let currentSubredditQuizCount = 0;
+        let newSubredditTotalScore = 0;
+        let newSubredditQuizCount = 0;
+
+        if (subredditName && subredditPlayerStatsKey) {
+          const subredditPlayerStats = await this.redis.hGetAll(subredditPlayerStatsKey);
+          currentSubredditTotalScore = subredditPlayerStats?.totalScore
+            ? parseInt(subredditPlayerStats.totalScore as string, 10)
+            : 0;
+          currentSubredditQuizCount = subredditPlayerStats?.quizCount
+            ? parseInt(subredditPlayerStats.quizCount as string, 10)
+            : 0;
+          newSubredditTotalScore = currentSubredditTotalScore + scoreDifference;
+          newSubredditQuizCount = existingScore === null ? currentSubredditQuizCount + 1 : currentSubredditQuizCount;
+        }
+
+        const txn = await this.redis.watch(...watchKeys);
 
         await txn.multi();
 
@@ -157,6 +184,7 @@ export class RedisStorage {
           baseScore: score.baseScore,
           timeBonus: score.timeBonus,
           submittedAt: score.submittedAt,
+          subredditName: subredditName || null,
         });
 
         await txn.zAdd(quizHistoryKey, {
@@ -174,6 +202,21 @@ export class RedisStorage {
           quizCount: newQuizCount.toString(),
           lastUpdated: score.submittedAt.toString(),
         });
+
+        if (subredditName && subredditLeaderboardKey && subredditPlayerStatsKey) {
+          await txn.zAdd(subredditLeaderboardKey, {
+            member: score.userId,
+            score: newSubredditTotalScore,
+          });
+
+          await txn.hSet(subredditPlayerStatsKey, {
+            totalScore: newSubredditTotalScore.toString(),
+            quizCount: newSubredditQuizCount.toString(),
+            lastUpdated: score.submittedAt.toString(),
+          });
+
+          await txn.del(`cache:subreddit:${subredditName}:ranking:50`);
+        }
 
         await txn.del(`cache:global-leaderboard:50`);
 
@@ -245,6 +288,7 @@ export class RedisStorage {
       submittedAt: number;
       baseScore: number;
       timeBonus: number;
+      subredditName?: string;
     }>;
     total: number;
   }> {
@@ -267,7 +311,6 @@ export class RedisStorage {
         const drawingMeta = await this.redis.hGetAll(`drawings:meta:${entryData.drawingId}`);
 
         const leaderboardKey = `leaderboard:${entryData.drawingId}`;
-        // Get all members in the leaderboard (sorted by score descending)
         const leaderboard = await this.redis.zRange(leaderboardKey, 0, -1, { by: 'rank', reverse: true });
         const rank = leaderboard?.findIndex((item: { member: string }) => item.member === userId) ?? -1;
         const rankValue = rank !== -1 && rank < 5 ? rank + 1 : null;
@@ -280,6 +323,7 @@ export class RedisStorage {
           submittedAt: entryData.submittedAt,
           baseScore: entryData.baseScore,
           timeBonus: entryData.timeBonus,
+          subredditName: entryData.subredditName || undefined,
         };
       })
     );
@@ -347,5 +391,141 @@ export class RedisStorage {
   }> {
     const result = await this.getGlobalLeaderboard(limit);
     return { entries: result.entries };
+  }
+
+  async saveSubredditPost(drawingId: string, postId: string, subredditName: string, postUrl: string, postTitle: string, postedBy: string): Promise<void> {
+    const postKey = `drawing:${drawingId}:post`;
+    const subredditQuizzesKey = `subreddit:${subredditName}:quizzes`;
+    const postedAt = Date.now();
+
+    await this.redis.hSet(postKey, {
+      postId,
+      drawingId,
+      subredditName,
+      postUrl,
+      postTitle,
+      postedAt: postedAt.toString(),
+      postedBy,
+    });
+
+    await this.redis.zAdd(subredditQuizzesKey, {
+      member: drawingId,
+      score: postedAt,
+    });
+  }
+
+  async getSubredditPost(drawingId: string): Promise<{
+    postId: string;
+    subredditName: string;
+    postUrl: string;
+    postTitle: string;
+    postedAt: number;
+    postedBy: string;
+  } | null> {
+    const postKey = `drawing:${drawingId}:post`;
+    const postData = await this.redis.hGetAll(postKey);
+
+    if (!postData || Object.keys(postData).length === 0) {
+      return null;
+    }
+
+    return {
+      postId: postData.postId as string,
+      subredditName: postData.subredditName as string,
+      postUrl: postData.postUrl as string,
+      postTitle: postData.postTitle as string,
+      postedAt: parseInt(postData.postedAt as string, 10),
+      postedBy: postData.postedBy as string,
+    };
+  }
+
+  async getSubredditRanking(subredditName: string, limit: number = 50, currentUserId?: string): Promise<{
+    entries: Array<{
+      userId: string;
+      totalScore: number;
+      quizCount: number;
+      lastUpdated: number;
+      rank: number;
+    }>;
+    total: number;
+    currentUserRank?: number;
+  }> {
+    const subredditLeaderboardKey = `subreddit:${subredditName}:leaderboard`;
+    const total = await this.redis.zCard(subredditLeaderboardKey) || 0;
+
+    const topPlayers = await this.redis.zRange(subredditLeaderboardKey, 0, limit - 1, { by: 'rank', reverse: true });
+
+    if (!topPlayers || topPlayers.length === 0) {
+      return { entries: [], total };
+    }
+
+    const entries = await Promise.all(
+      topPlayers.map(async (item: { member: string; score: number }, index: number) => {
+        const playerStatsKey = `subreddit:${subredditName}:player:${item.member}`;
+        const playerStats = await this.redis.hGetAll(playerStatsKey);
+
+        return {
+          userId: item.member,
+          totalScore: item.score,
+          quizCount: playerStats?.quizCount ? parseInt(playerStats.quizCount as string, 10) : 0,
+          lastUpdated: playerStats?.lastUpdated ? parseInt(playerStats.lastUpdated as string, 10) : 0,
+          rank: index + 1,
+        };
+      })
+    );
+
+    let currentUserRank: number | undefined = undefined;
+    if (currentUserId) {
+      const allPlayers = await this.redis.zRange(subredditLeaderboardKey, 0, -1, { by: 'rank', reverse: true });
+      const rank = allPlayers?.findIndex((item: { member: string }) => item.member === currentUserId) ?? -1;
+      if (rank !== -1) {
+        currentUserRank = rank + 1;
+      }
+    }
+
+    return { entries, total, ...(currentUserRank !== undefined && { currentUserRank }) };
+  }
+
+  async getSubredditQuizzes(subredditName: string, page: number = 1, limit: number = 20): Promise<{
+    quizzes: Array<{
+      drawingId: string;
+      subredditName: string;
+      postId: string;
+      answer: string;
+      createdBy: string;
+      postedAt: number;
+    }>;
+    total: number;
+  }> {
+    const subredditQuizzesKey = `subreddit:${subredditName}:quizzes`;
+    const total = await this.redis.zCard(subredditQuizzesKey) || 0;
+
+    const start = (page - 1) * limit;
+    const end = start + limit - 1;
+
+    const quizItems = await this.redis.zRange(subredditQuizzesKey, start, end, { by: 'rank', reverse: true });
+
+    if (!quizItems || quizItems.length === 0) {
+      return { quizzes: [], total };
+    }
+
+    const quizzes = await Promise.all(
+      quizItems.map(async (item: { member: string; score: number }) => {
+        const drawingId = item.member;
+        const drawingMeta = await this.redis.hGetAll(`drawings:meta:${drawingId}`);
+        const postData = await this.redis.hGetAll(`drawing:${drawingId}:post`);
+
+        return {
+          drawingId,
+          subredditName,
+          postId: (postData?.postId as string) || '',
+          answer: (drawingMeta?.answer as string) || 'Unknown',
+          createdBy: (drawingMeta?.createdBy as string) || 'Unknown',
+          postedAt: item.score,
+        };
+      })
+    );
+
+    return { quizzes, total };
   }
 }

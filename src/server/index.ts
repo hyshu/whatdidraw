@@ -8,7 +8,7 @@ import {
   Drawing,
   UserProfile
 } from '../shared/types/api';
-import { redis, createServer, context } from '@devvit/web/server';
+import { redis, reddit, createServer, context } from '@devvit/web/server';
 import { createPost } from './core/post';
 import { RedisStorage } from './storage/redis';
 import { validateDrawing, sanitizeText } from '../shared/utils/validation';
@@ -41,11 +41,17 @@ router.get<{ postId: string }, InitResponse | { status: string; message: string 
       // Get Reddit username from context.userId (converts t2_xxxxx to username)
       const username = await getUsernameFromId(context.userId || 'anonymous');
 
+      // Read postData from context to get game state and drawing ID
+      const postData = context.postData as { gameState?: string; drawingId?: string } | undefined;
+      const gameState = (postData?.gameState as 'menu' | 'drawing' | 'quiz' | 'results') || 'menu';
+      const drawingId = postData?.drawingId;
+
       res.json({
         type: 'init',
         postId: postId,
-        gameState: 'menu',
+        gameState: gameState,
         userId: username,
+        drawingId: drawingId,
       });
     } catch (error) {
       console.error(`API Init Error for post ${postId}:`, error);
@@ -130,8 +136,11 @@ router.post<{}, SubmitGuessResponse | { status: string; message: string }, { gue
         timeBonus = Math.max(0, (60 - elapsedTime) * 10);
         totalScore = baseScore + timeBonus;
 
-        // Get Reddit username from context.userId (converts t2_xxxxx to username)
         const username = await getUsernameFromId(context.userId || 'anonymous');
+
+        const subredditPost = await storage.getSubredditPost(drawingId);
+        const subredditName = subredditPost?.subredditName;
+
         await storage.saveScore({
           drawingId,
           userId: username,
@@ -141,7 +150,7 @@ router.post<{}, SubmitGuessResponse | { status: string; message: string }, { gue
           elapsedTime,
           viewedStrokes,
           submittedAt: Date.now(),
-        });
+        }, subredditName);
       }
 
       res.json({
@@ -441,6 +450,199 @@ router.get('/api/leaderboard/global', async (req, res): Promise<void> => {
     });
   }
 });
+
+router.post<{}, any, { drawingId: string; postTitle?: string }>(
+  '/api/subreddit/post',
+  async (req, res): Promise<void> => {
+    try {
+      const { drawingId, postTitle } = req.body;
+
+      if (!drawingId) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Drawing ID is required'
+        });
+        return;
+      }
+
+      // Use the subreddit where the app is installed
+      const subredditName = context.subredditName;
+      if (!subredditName) {
+        res.status(400).json({
+          status: 'error',
+          message: 'App must be installed in a subreddit'
+        });
+        return;
+      }
+
+      const drawing = await storage.getDrawing(drawingId);
+      if (!drawing) {
+        res.status(404).json({
+          status: 'error',
+          message: 'Drawing not found'
+        });
+        return;
+      }
+
+      const username = await getUsernameFromId(context.userId || 'anonymous');
+      const title = postTitle || 'Can you guess what I drew?';
+
+      try {
+        const post = await reddit.submitCustomPost({
+          splash: {
+            appDisplayName: 'What Did I Draw?',
+            backgroundUri: 'splash.png',
+            buttonLabel: 'Play Quiz',
+            description: `Drawing Quiz: ${drawing.answer}`,
+            heading: title,
+            appIconUri: 'icon.png',
+          },
+          postData: {
+            gameState: 'quiz',
+            drawingId: drawingId,
+          },
+          subredditName: subredditName,
+          title: title,
+        });
+
+        const postUrl = `https://reddit.com/r/${subredditName}/comments/${post.id}`;
+        await storage.saveSubredditPost(drawingId, post.id, subredditName, postUrl, title, username);
+
+        res.json({
+          type: 'shareToSubreddit',
+          postId: post.id,
+          postUrl: postUrl,
+          subredditName: subredditName,
+          success: true,
+        });
+      } catch (error) {
+        console.error('Error creating Reddit post:', error);
+        res.status(500).json({
+          status: 'error',
+          message: 'Failed to create Reddit post'
+        });
+      }
+    } catch (error) {
+      console.error('Error sharing to subreddit:', error);
+      res.status(400).json({
+        status: 'error',
+        message: 'Failed to share to subreddit'
+      });
+    }
+  }
+);
+
+router.get<{ name: string }>(
+  '/api/subreddit/:name/ranking',
+  async (req, res): Promise<void> => {
+    try {
+      const { name } = req.params;
+      const { limit = '50' } = req.query;
+      const limitNum = parseInt(limit as string, 10);
+
+      if (!name) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Subreddit name is required'
+        });
+        return;
+      }
+
+      if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Invalid limit (must be 1-100)'
+        });
+        return;
+      }
+
+      const currentUsername = context.userId ? await getUsernameFromId(context.userId) : undefined;
+      const result = await storage.getSubredditRanking(name, limitNum, currentUsername);
+
+      const userIds = result.entries.map(entry => entry.userId);
+      const profiles = await getUserProfiles(userIds);
+
+      const entriesWithProfiles = result.entries.map(entry => {
+        const profile = profiles.get(entry.userId);
+        return {
+          userId: entry.userId,
+          subredditName: name,
+          totalScore: entry.totalScore,
+          quizCount: entry.quizCount,
+          rank: entry.rank,
+          lastUpdated: entry.lastUpdated,
+          avatarUrl: profile?.avatarUrl,
+        };
+      });
+
+      res.json({
+        type: 'getSubredditRanking',
+        entries: entriesWithProfiles,
+        total: result.total,
+        currentUserRank: result.currentUserRank,
+      });
+    } catch (error) {
+      console.error('Error getting subreddit ranking:', error);
+      res.status(400).json({
+        status: 'error',
+        message: 'Failed to get subreddit ranking'
+      });
+    }
+  }
+);
+
+router.get<{ name: string }>(
+  '/api/subreddit/:name/quizzes',
+  async (req, res): Promise<void> => {
+    try {
+      const { name } = req.params;
+      const { page = '1', limit = '20' } = req.query;
+
+      if (!name) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Subreddit name is required'
+        });
+        return;
+      }
+
+      const pageNum = parseInt(page as string, 10);
+      const limitNum = parseInt(limit as string, 10);
+
+      if (isNaN(pageNum) || pageNum < 1) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Invalid page number'
+        });
+        return;
+      }
+
+      if (isNaN(limitNum) || limitNum < 1 || limitNum > 50) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Invalid limit (must be 1-50)'
+        });
+        return;
+      }
+
+      const result = await storage.getSubredditQuizzes(name, pageNum, limitNum);
+
+      res.json({
+        type: 'getSubredditQuizzes',
+        quizzes: result.quizzes,
+        total: result.total,
+        page: pageNum,
+        limit: limitNum,
+      });
+    } catch (error) {
+      console.error('Error getting subreddit quizzes:', error);
+      res.status(400).json({
+        status: 'error',
+        message: 'Failed to get subreddit quizzes'
+      });
+    }
+  }
+);
 
 router.post('/internal/init-redis', async (_req, res): Promise<void> => {
   try {

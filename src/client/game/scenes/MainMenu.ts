@@ -25,6 +25,19 @@ export class MainMenu extends Scene {
 
   create() {
     this.cameras.main.setBackgroundColor(0x6a4c93);
+
+    // Check if we should auto-start a quiz from post data
+    const gameState = this.registry.get('gameState');
+    const drawingId = this.registry.get('drawingId');
+
+    if (gameState === 'quiz' && drawingId) {
+      // Clear the drawingId from registry so it doesn't auto-start again
+      this.registry.remove('drawingId');
+      // Start the quiz scene with the specific drawing
+      this.scene.start('Quiz', { drawingId });
+      return;
+    }
+
     this.refreshLayout();
     this.scale.on('resize', () => this.refreshLayout());
   }
