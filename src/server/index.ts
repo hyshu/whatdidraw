@@ -337,7 +337,7 @@ router.post<{}, SaveDrawingResponse | { status: string; message: string }, { dra
       const sanitizedHint = drawing.hint ? sanitizeText(drawing.hint) : undefined;
 
       // Get Reddit username from context.userId (converts t2_xxxxx to username)
-      const username = drawing.createdBy || await getUsernameFromId(context.userId || 'anonymous');
+      const username = await getUsernameFromId(context.userId || 'anonymous');
 
       const drawingToSave: Omit<Drawing, 'id'> = {
         createdBy: username,

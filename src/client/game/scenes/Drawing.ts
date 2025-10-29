@@ -481,8 +481,6 @@ export class Drawing extends Scene {
       hint: sanitizedHint || undefined,
       strokes: this.strokes,
       totalStrokes: this.strokes.length,
-      createdBy: 'player',
-      createdAt: Date.now(),
     };
 
     showLoading('Saving drawing...');
