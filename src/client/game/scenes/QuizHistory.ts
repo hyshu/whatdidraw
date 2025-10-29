@@ -130,8 +130,8 @@ export class QuizHistory extends Scene {
         const scoreInfoDiv = document.createElement('div');
         const rankText = entry.rank !== null ? `Rank ${entry.rank}` : 'Rank -';
         scoreInfoDiv.innerHTML = `
-          <div style="font-size: 20px; font-weight: bold; color: #6a4c93;">${entry.score} pts</div>
-          <div style="font-size: 14px; color: #666;">Base: ${entry.baseScore} | Bonus: ${entry.timeBonus} | ${rankText}</div>
+          <div style="font-size: 20px; font-weight: bold; color: #6a4c93;">${entry.score.toFixed(2)} pts</div>
+          <div style="font-size: 14px; color: #666;">Base: ${entry.baseScore.toFixed(2)} | Bonus: ${entry.timeBonus.toFixed(2)} | ${rankText}</div>
         `;
 
         const viewLeaderboardButton = document.createElement('button');

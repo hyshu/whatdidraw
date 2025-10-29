@@ -184,11 +184,11 @@ export class Leaderboard extends Scene {
         rightDiv.style.cssText = 'text-align: right;';
 
         const totalScoreDiv = document.createElement('div');
-        totalScoreDiv.textContent = `${score.score} points`;
+        totalScoreDiv.textContent = `${score.score.toFixed(2)} points`;
         totalScoreDiv.style.cssText = 'font-size: 20px; font-weight: bold; color: #27ae60;';
 
         const breakdownDiv = document.createElement('div');
-        breakdownDiv.textContent = `Base: ${score.baseScore} | Time: ${score.timeBonus}`;
+        breakdownDiv.textContent = `Base: ${score.baseScore.toFixed(2)} | Time: ${score.timeBonus.toFixed(2)}`;
         breakdownDiv.style.cssText = 'font-size: 12px; color: #888; margin-top: 2px;';
 
         rightDiv.appendChild(totalScoreDiv);
